@@ -1,6 +1,24 @@
 let activeTab = 'global';
 let playersList = [];
 
+// Axial coordinates list for standard spiral hex board layout
+const hexCoords = [
+  { q: 0, r: 0 }, // Center
+  // Ring 1 (6 hexes)
+  { q: 1, r: -1 }, { q: 1, r: 0 }, { q: 0, r: 1 },
+  { q: -1, r: 1 }, { q: -1, r: 0 }, { q: 0, r: -1 },
+  // Ring 2 (12 hexes)
+  { q: 2, r: -2 }, { q: 2, r: -1 }, { q: 2, r: 0 }, { q: 1, r: 1 },
+  { q: 0, r: 2 }, { q: -1, r: 2 }, { q: -2, r: 2 }, { q: -2, r: 1 },
+  { q: -2, r: 0 }, { q: -1, r: -1 }, { q: 0, r: -2 }, { q: 1, r: -2 },
+  // Ring 3 (18 hexes)
+  { q: 3, r: -3 }, { q: 3, r: -2 }, { q: 3, r: -1 }, { q: 3, r: 0 },
+  { q: 2, r: 1 }, { q: 1, r: 2 }, { q: 0, r: 3 }, { q: -1, r: 3 },
+  { q: -2, r: 3 }, { q: -3, r: 3 }, { q: -3, r: 2 }, { q: -3, r: 1 },
+  { q: -3, r: 0 }, { q: -2, r: -1 }, { q: -1, r: -2 }, { q: 0, r: -3 },
+  { q: 1, r: -3 }, { q: 2, r: -3 }
+];
+
 document.addEventListener('DOMContentLoaded', async () => {
   await fetchPlayers();
   setupDivisionSelect();
@@ -78,6 +96,7 @@ async function updateDashboard() {
   setupDivisionSelect();
   await renderLeaderboard();
   await renderCrownsAndLineage();
+  renderHexBoard(playersList);
 }
 
 async function renderLeaderboard() {
@@ -268,4 +287,85 @@ function escapeHtml(str) {
   const div = document.createElement('div');
   div.innerText = str;
   return div.innerHTML;
+}
+
+function renderHexBoard(players) {
+  const container = document.getElementById('hexBoardContainer');
+  container.innerHTML = '';
+
+  if (players.length === 0) {
+    container.innerHTML = '<p style="text-align:center; padding: 20px;">No players registered yet.</p>';
+    container.style.width = 'auto';
+    container.style.height = 'auto';
+    return;
+  }
+
+  fetch('/api/stats')
+    .then(res => res.json())
+    .then(data => {
+      const stats = data.playerStats;
+      
+      const hexWidth = 104;
+      const hexHeight = 120;
+
+      let minX = Infinity, maxX = -Infinity;
+      let minY = Infinity, maxY = -Infinity;
+
+      const positions = stats.map((player, index) => {
+        const coord = hexCoords[index % hexCoords.length];
+        const x = (coord.q * hexWidth) + (coord.r * (hexWidth / 2));
+        const y = coord.r * (hexHeight * 0.75);
+
+        if (x < minX) minX = x;
+        if (x > maxX) maxX = x;
+        if (y < minY) minY = y;
+        if (y > maxY) maxY = y;
+
+        return { player, x, y };
+      });
+
+      const paddingX = hexWidth;
+      const paddingY = hexHeight;
+      const boardWidth = (maxX - minX) + paddingX;
+      const boardHeight = (maxY - minY) + paddingY;
+
+      container.style.width = `${boardWidth}px`;
+      container.style.height = `${boardHeight}px`;
+
+      positions.forEach(({ player, x, y }) => {
+        const left = x - minX + (hexWidth / 2) - (hexWidth / 2);
+        const top = y - minY + (hexHeight / 2) - (hexHeight / 2);
+
+        const hex = document.createElement('div');
+        hex.className = 'catan-hex';
+
+        const resourceTypes = ['wheat', 'forest', 'clay', 'ore', 'pasture'];
+        const rank = stats.indexOf(player);
+        const resource = player.totalWins === 0 ? 'desert' : resourceTypes[rank % resourceTypes.length];
+        hex.classList.add(`hex-${resource}`);
+
+        hex.style.left = `${left}px`;
+        hex.style.top = `${top}px`;
+        hex.style.width = `${hexWidth}px`;
+        hex.style.height = `${hexHeight}px`;
+
+        const tokenClass = player.totalWins === 0 ? 'token-desert' : 'token-wins';
+        const tokenVal = player.totalWins === 0 ? '0' : player.totalWins;
+
+        hex.innerHTML = `
+          <div class="hex-inner">
+            <div class="hex-player-name">${escapeHtml(player.name)}</div>
+            <div class="hex-token ${tokenClass}">
+              <span class="wins-number">${tokenVal}</span>
+              <span class="wins-label">wins</span>
+            </div>
+          </div>
+        `;
+
+        container.appendChild(hex);
+      });
+    })
+    .catch(err => {
+      console.error('Error rendering hex board:', err);
+    });
 }
