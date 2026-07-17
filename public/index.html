@@ -13,9 +13,19 @@
   </header>
 
   <main class="dashboard-grid">
+    <!-- DYNAMIC HEX BOARD SECTION -->
+    <section class="catan-card board-box">
+      <h2 class="section-title">Catan League Board</h2>
+      <div class="board-wrapper">
+        <div id="hexBoardContainer" class="hex-board-container">
+          <!-- Dynamically populated hexes -->
+        </div>
+      </div>
+    </section>
+
     <!-- DIVISION CROWNS SECTION -->
     <section class="catan-card board-box">
-      <h2 class="section-title">🏆 Current Division Crowns 🏆</h2>
+      <h2 class="section-title">Current Division Crowns</h2>
       <div class="crowns-row" id="crownsContainer">
         <!-- Populated by JS -->
       </div>
@@ -23,7 +33,7 @@
 
     <!-- LOG A MATCH SECTION -->
     <section class="catan-card log-box">
-      <h2 class="section-title">🎲 Log a Match 🎲</h2>
+      <h2 class="section-title">Log a Match</h2>
       <form id="matchForm">
         <div class="form-group">
           <label for="divisionSelect">Game Division:</label>
@@ -47,7 +57,7 @@
 
     <!-- LEADERBOARDS & STATS -->
     <section class="catan-card stats-box">
-      <h2 class="section-title">📊 Leaderboard & Player Stats 📊</h2>
+      <h2 class="section-title">Leaderboard & Player Stats</h2>
       
       <div class="division-tabs">
         <button class="tab-btn active" data-div="global">Global</button>
@@ -77,7 +87,7 @@
 
     <!-- ADD NEW PLAYER -->
     <section class="catan-card player-box">
-      <h2 class="section-title">👤 Add Player 👤</h2>
+      <h2 class="section-title">Add Player</h2>
       <form id="playerForm">
         <div class="form-group">
           <label for="playerNameInput">Player Name:</label>
@@ -89,7 +99,7 @@
 
     <!-- CROWN LINEAGE TIMELINE -->
     <section class="catan-card lineage-box">
-      <h2 class="section-title">📜 Crown Lineage History 📜</h2>
+      <h2 class="section-title">Crown Lineage History</h2>
       <div id="lineageTimeline" class="timeline">
         <!-- Dynamic Lineage records -->
       </div>

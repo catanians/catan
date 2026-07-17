@@ -20,7 +20,7 @@ The website will track match history and player statistics across three distinct
 - **Keep it Simple & "Clunky":** The UI does not need to be pixel-perfect or overly slick. A slightly clunky, retro, or highly tangible physical aesthetic is preferred. Focus on core layout and readable data first; we will iterate on the design later.
 
 # Execution Instructions
-1. Do not start writing application code immediately.
+1. Do not start writing application code immediately. Use and writingplans.md to help plan.
 2. First, propose a simple, lightweight Tech Stack for this project.
 3. Second, define the Database Schema required to track the players, matches, divisions, and the specific UFC-style Crown logic. The goal is to use azure cosmos DB on a free student plan
 4. Wait for my approval on the stack and schema before writing any frontend or backend code.
