@@ -74,7 +74,7 @@ function setupDivisionSelect() {
   for (let i = 1; i <= div; i++) {
     const row = document.createElement('div');
     row.className = 'placement-row';
-    
+
     const label = document.createElement('span');
     label.innerText = `${i}${getOrdinal(i)}`;
     label.className = 'rank-label';
@@ -153,28 +153,28 @@ async function updateDashboard() {
 async function renderLeaderboard() {
   const endpoint = activeTab === 'global' ? '/api/stats' : `/api/stats/${activeTab}`;
   const tbody = document.getElementById('leaderboardBody');
-    tbody.innerHTML = '<tr><td colspan="11">Loading stats...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="11">Loading stats...</td></tr>';
 
-    try {
-      const res = await fetch(endpoint);
-      const data = await res.json();
-      const stats = data.playerStats;
+  try {
+    const res = await fetch(endpoint);
+    const data = await res.json();
+    const stats = data.playerStats;
 
-      tbody.innerHTML = '';
-      if (!stats || stats.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="11">No matches recorded yet.</td></tr>';
-        return;
-      }
+    tbody.innerHTML = '';
+    if (!stats || stats.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="11">No matches recorded yet.</td></tr>';
+      return;
+    }
 
-      stats.forEach(player => {
-        const tr = document.createElement('tr');
-        const winRatePct = (player.winRate * 100).toFixed(1) + '%';
-        const placementStr = Object.entries(player.placements)
-          .filter(([place, count]) => count > 0)
-          .map(([place, count]) => `${place}${getOrdinal(parseInt(place))}: ${count}`)
-          .join(', ');
+    stats.forEach(player => {
+      const tr = document.createElement('tr');
+      const winRatePct = (player.winRate * 100).toFixed(1) + '%';
+      const placementStr = Object.entries(player.placements)
+        .filter(([place, count]) => count > 0)
+        .map(([place, count]) => `${place}${getOrdinal(parseInt(place))}: ${count}`)
+        .join(', ');
 
-        tr.innerHTML = `
+      tr.innerHTML = `
           <td><strong>${escapeHtml(player.name)}</strong></td>
           <td>${player.totalWins}</td>
           <td>${player.totalLosses}</td>
@@ -186,11 +186,11 @@ async function renderLeaderboard() {
           <td>${player.totalLongestRoads || 0}</td>
           <td><small>${placementStr || 'None'}</small></td>
         `;
-        tbody.appendChild(tr);
-      });
-    } catch (err) {
-      tbody.innerHTML = '<tr><td colspan="11">Error loading leaderboards.</td></tr>';
-    }
+      tbody.appendChild(tr);
+    });
+  } catch (err) {
+    tbody.innerHTML = '<tr><td colspan="11">Error loading leaderboards.</td></tr>';
+  }
 }
 
 async function renderCrownsAndLineage() {
@@ -202,7 +202,7 @@ async function renderCrownsAndLineage() {
   try {
     const res = await fetch('/api/stats');
     const data = await res.json();
-    
+
     const crowns = data.crowns;
     const reigns = data.reigns;
 
@@ -212,7 +212,7 @@ async function renderCrownsAndLineage() {
       const crown = crowns.find(c => c.division === div);
       const badge = document.createElement('div');
       badge.className = 'crown-badge';
-      
+
       if (crown) {
         badge.innerHTML = `
           <img src="images/scroll.webp" alt="Scroll" class="scroll-img">
@@ -250,10 +250,10 @@ async function renderCrownsAndLineage() {
     sortedReigns.forEach(reign => {
       const item = document.createElement('div');
       item.className = 'timeline-item';
-      
+
       const dateStr = new Date(reign.startedAt).toLocaleDateString();
       const activeLabel = reign.endedAt ? `Reigned until ${new Date(reign.endedAt).toLocaleDateString()}` : 'CURRENT CHAMPION';
-      
+
       item.innerHTML = `
         <div class="reign-title">${reign.division}-Player Crown: ${escapeHtml(reign.playerName)}</div>
         <div class="reign-details">
@@ -282,7 +282,7 @@ async function handlePlayerSubmit(e) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name })
     });
-    
+
     if (!res.ok) {
       const errData = await res.json();
       alert(errData.error || 'Failed to create player');
@@ -310,7 +310,7 @@ async function handleMatchSubmit(e) {
     const citiesVal = rows[i].querySelector('.cities-input').value;
     const metropolisVal = rows[i].querySelector('.metropolis-input').value;
     const longestRoadChecked = rows[i].querySelector('.longest-road-checkbox').checked;
-    
+
     const playerId = select.value;
     const playerName = select.options[select.selectedIndex].text;
 
@@ -379,7 +379,7 @@ function renderHexBoard(players) {
     .then(res => res.json())
     .then(data => {
       const stats = data.playerStats;
-      
+
       const hexWidth = 120;
       const hexHeight = 104;
       const renderWidth = 124;
