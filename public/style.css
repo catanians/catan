@@ -1,5 +1,4 @@
 /* Physical, Board-game theme CSS */
-@import url('https://fonts.googleapis.com/css2?family=Special+Elite&family=Courier+Prime&display=swap');
 
 :root {
   --color-wood: #8B5A2B;
@@ -13,7 +12,7 @@
   
   --font-header: 'Minion Pro', 'Minion', serif;
   --font-tactile: 'Minion Pro', 'Minion', serif;
-  --font-data: 'Courier Prime', monospace;
+  --font-data: 'Minion Pro', 'Minion', serif;
 }
 
 body {
