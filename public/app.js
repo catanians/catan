@@ -313,62 +313,102 @@ function renderHexBoard(players) {
     .then(data => {
       const stats = data.playerStats;
       
-      const hexWidth = 104;
-      const hexHeight = 120;
+      const hexWidth = 120;
+      const hexHeight = 104;
+      const renderWidth = 124;
+      const renderHeight = 108;
+
+      const neighborDirs = [
+        { q: 1, r: -1 }, { q: 1, r: 0 }, { q: 0, r: 1 },
+        { q: -1, r: 1 }, { q: -1, r: 0 }, { q: 0, r: -1 }
+      ];
+
+      const playerHexes = stats.map((player, index) => {
+        const coord = hexCoords[index % hexCoords.length];
+        return { player, q: coord.q, r: coord.r, type: 'land', rank: index };
+      });
+
+      const occupiedMap = new Set(playerHexes.map(h => `${h.q},${h.r}`));
+      const waterMap = new Set();
+      const waterHexes = [];
+
+      playerHexes.forEach(h => {
+        neighborDirs.forEach(d => {
+          const nq = h.q + d.q;
+          const nr = h.r + d.r;
+          const key = `${nq},${nr}`;
+          if (!occupiedMap.has(key) && !waterMap.has(key)) {
+            waterMap.add(key);
+            waterHexes.push({ q: nq, r: nr, type: 'water' });
+          }
+        });
+      });
+
+      const allHexes = [...playerHexes, ...waterHexes];
 
       let minX = Infinity, maxX = -Infinity;
       let minY = Infinity, maxY = -Infinity;
 
-      const positions = stats.map((player, index) => {
-        const coord = hexCoords[index % hexCoords.length];
-        const x = (coord.q * hexWidth) + (coord.r * (hexWidth / 2));
-        const y = coord.r * (hexHeight * 0.75);
+      allHexes.forEach(h => {
+        h.x = h.q * (hexWidth * 0.73);
+        h.y = (h.r * (hexHeight * 0.975)) + (h.q * ((hexHeight * 0.975) / 2));
 
-        if (x < minX) minX = x;
-        if (x > maxX) maxX = x;
-        if (y < minY) minY = y;
-        if (y > maxY) maxY = y;
-
-        return { player, x, y };
+        if (h.x < minX) minX = h.x;
+        if (h.x > maxX) maxX = h.x;
+        if (h.y < minY) minY = h.y;
+        if (h.y > maxY) maxY = h.y;
       });
 
-      const paddingX = hexWidth;
-      const paddingY = hexHeight;
+      const paddingX = renderWidth;
+      const paddingY = renderHeight;
       const boardWidth = (maxX - minX) + paddingX;
       const boardHeight = (maxY - minY) + paddingY;
 
       container.style.width = `${boardWidth}px`;
       container.style.height = `${boardHeight}px`;
 
-      positions.forEach(({ player, x, y }) => {
-        const left = x - minX + (hexWidth / 2) - (hexWidth / 2);
-        const top = y - minY + (hexHeight / 2) - (hexHeight / 2);
+      const resourceTypes = ['wheat', 'forest', 'clay', 'ore', 'pasture'];
+
+      allHexes.forEach(h => {
+        const left = h.x - minX;
+        const top = h.y - minY;
 
         const hex = document.createElement('div');
         hex.className = 'catan-hex';
 
-        const resourceTypes = ['wheat', 'forest', 'clay', 'ore', 'pasture'];
-        const rank = stats.indexOf(player);
-        const resource = player.totalWins === 0 ? 'desert' : resourceTypes[rank % resourceTypes.length];
-        hex.classList.add(`hex-${resource}`);
+        if (h.type === 'land') {
+          const resource = resourceTypes[h.rank % resourceTypes.length];
+          hex.classList.add(`hex-${resource}`);
+
+          const wins = h.player.totalWins || 0;
+          const isRed = h.rank === 0 || wins >= 5;
+          const numClass = isRed ? 'token-number is-red' : 'token-number';
+          const dotClass = isRed ? 'token-dot is-red' : 'token-dot';
+
+          const dotCount = wins === 0 ? 1 : Math.min(5, Math.max(1, wins + 1));
+          let dotsHtml = '';
+          for (let i = 0; i < dotCount; i++) {
+            dotsHtml += `<div class="${dotClass}"></div>`;
+          }
+
+          hex.innerHTML = `
+            <div class="hex-inner">
+              <div class="hex-player-name">${escapeHtml(h.player.name)}</div>
+              <div class="hex-token">
+                <div class="${numClass}">${wins}</div>
+                <div class="token-dots">${dotsHtml}</div>
+              </div>
+            </div>
+          `;
+        } else {
+          hex.classList.add('hex-water');
+          hex.innerHTML = `<div class="hex-inner"></div>`;
+        }
 
         hex.style.left = `${left}px`;
         hex.style.top = `${top}px`;
-        hex.style.width = `${hexWidth}px`;
-        hex.style.height = `${hexHeight}px`;
-
-        const tokenClass = player.totalWins === 0 ? 'token-desert' : 'token-wins';
-        const tokenVal = player.totalWins === 0 ? '0' : player.totalWins;
-
-        hex.innerHTML = `
-          <div class="hex-inner">
-            <div class="hex-player-name">${escapeHtml(player.name)}</div>
-            <div class="hex-token ${tokenClass}">
-              <span class="wins-number">${tokenVal}</span>
-              <span class="wins-label">wins</span>
-            </div>
-          </div>
-        `;
+        hex.style.width = `${renderWidth}px`;
+        hex.style.height = `${renderHeight}px`;
 
         container.appendChild(hex);
       });

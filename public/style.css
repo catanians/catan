@@ -356,8 +356,7 @@ select:focus, input[type="text"]:focus {
 /* Clip-path Hexagon container */
 .catan-hex {
   position: absolute;
-  background-color: var(--color-border);
-  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
   transition: transform 0.2s;
   user-select: none;
 }
@@ -367,14 +366,14 @@ select:focus, input[type="text"]:focus {
   z-index: 10;
 }
 
-/* Inner wrapper to create border effect */
+/* Inner wrapper */
 .hex-inner {
   position: absolute;
-  top: 4px;
-  left: 4px;
-  right: 4px;
-  bottom: 4px;
-  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -386,27 +385,42 @@ select:focus, input[type="text"]:focus {
 
 /* Catan resource styles */
 .hex-wheat .hex-inner {
-  background-color: var(--color-wheat);
-  background-image: repeating-linear-gradient(45deg, rgba(0,0,0,0.03) 0px, rgba(0,0,0,0.03) 2px, transparent 2px, transparent 10px);
+  background-image: url('/images/wheat.png');
+  background-size: cover;
+  background-position: center;
 }
 
 .hex-forest .hex-inner {
-  background-color: var(--color-forest);
+  background-image: url('/images/forest.png');
+  background-size: cover;
+  background-position: center;
   color: #fff;
 }
 
 .hex-clay .hex-inner {
-  background-color: var(--color-clay);
+  background-image: url('/images/clay.png');
+  background-size: cover;
+  background-position: center;
   color: #fff;
 }
 
 .hex-ore .hex-inner {
-  background-color: var(--color-ore);
+  background-image: url('/images/ore.png');
+  background-size: cover;
+  background-position: center;
   color: #fff;
 }
 
 .hex-pasture .hex-inner {
-  background-color: #7CFC00; /* Light pasture green */
+  background-image: url('/images/pasture.png');
+  background-size: cover;
+  background-position: center;
+}
+
+.hex-water .hex-inner {
+  background-image: url('/images/water.png');
+  background-size: cover;
+  background-position: center;
 }
 
 .hex-desert .hex-inner {
@@ -429,10 +443,10 @@ select:focus, input[type="text"]:focus {
   text-shadow: 1px 1px 0px rgba(0,0,0,0.5);
 }
 
-/* Circular number token */
+/* Circular physical Catan number token disk */
 .hex-token {
-  background-color: var(--color-parchment);
-  border: 2px solid var(--color-border);
+  background-color: #DECBA5;
+  border: 1.5px solid #6E5E48;
   border-radius: 50%;
   width: 46px;
   height: 46px;
@@ -440,29 +454,38 @@ select:focus, input[type="text"]:focus {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  box-shadow: 2px 2px 0px rgba(0,0,0,0.3);
-  margin-top: 6px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.4), inset 0 1px 2px rgba(255,255,255,0.7);
+  margin-top: 4px;
+  box-sizing: border-box;
 }
 
-.token-wins .wins-number {
-  font-size: 1.15rem;
+.token-number {
+  font-size: 1.2rem;
   font-weight: bold;
-  font-family: var(--font-data);
-  color: var(--color-ink);
+  font-family: var(--font-header);
+  color: #1A1A1A;
+  line-height: 1;
 }
 
-.token-wins .wins-label {
-  font-size: 0.55rem;
-  font-family: var(--font-tactile);
-  text-transform: uppercase;
-  margin-top: -3px;
-  color: #555;
+.token-number.is-red {
+  color: #B22222;
 }
 
-.token-desert {
-  background-color: transparent;
-  border: none;
-  box-shadow: none;
+.token-dots {
+  display: flex;
+  gap: 2px;
+  margin-top: 2px;
+}
+
+.token-dot {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background-color: #1A1A1A;
+}
+
+.token-dot.is-red {
+  background-color: #B22222;
 }
 
 .token-desert .wins-number {
