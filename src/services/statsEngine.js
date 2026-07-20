@@ -16,7 +16,11 @@ const statsEngine = {
         winRate: 0,
         placements: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 },
         currentStreak: 0,
-        maxStreak: 0
+        maxStreak: 0,
+        totalMetropolises: 0,
+        totalCities: 0,
+        totalSettlements: 0,
+        totalLongestRoads: 0
       };
     }
 
@@ -32,12 +36,21 @@ const statsEngine = {
             winRate: 0,
             placements: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 },
             currentStreak: 0,
-            maxStreak: 0
+            maxStreak: 0,
+            totalMetropolises: 0,
+            totalCities: 0,
+            totalSettlements: 0,
+            totalLongestRoads: 0
           };
         }
 
         const pStats = stats[pId];
         pStats.placements[p.place] = (pStats.placements[p.place] || 0) + 1;
+
+        pStats.totalMetropolises += p.metropolis ? 1 : 0;
+        pStats.totalCities += parseInt(p.cities, 10) || 0;
+        pStats.totalSettlements += parseInt(p.settlements, 10) || 0;
+        pStats.totalLongestRoads += p.longestRoad ? 1 : 0;
 
         if (p.place === 1) {
           pStats.totalWins += 1;

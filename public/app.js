@@ -58,32 +58,74 @@ function setupDivisionSelect() {
   const container = document.getElementById('placementInputsContainer');
   container.innerHTML = '';
 
+  const header = document.createElement('div');
+  header.className = 'placement-header';
+  header.innerHTML = `
+    <span>Rank</span>
+    <span>Player</span>
+    <span title="Victory Points">VP</span>
+    <span title="Settlements">Settlements</span>
+    <span title="Cities">Cities</span>
+    <span title="Metropolis">Metro</span>
+    <span title="Longest Road">Road</span>
+  `;
+  container.appendChild(header);
+
   for (let i = 1; i <= div; i++) {
     const row = document.createElement('div');
     row.className = 'placement-row';
     
     const label = document.createElement('span');
-    label.innerText = `${i}${getOrdinal(i)} Place:`;
-    label.style.width = '80px';
-    label.style.fontWeight = 'bold';
+    label.innerText = `${i}${getOrdinal(i)}`;
+    label.className = 'rank-label';
 
     const playerSelect = document.createElement('select');
     playerSelect.className = 'player-select';
     playerSelect.required = true;
-    playerSelect.innerHTML = `<option value="">-- Choose Player --</option>` +
+    playerSelect.innerHTML = `<option value="">-- Player --</option>` +
       playersList.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
 
     const vpInput = document.createElement('input');
     vpInput.type = 'number';
-    vpInput.placeholder = 'VP Score';
+    vpInput.placeholder = 'VP';
     vpInput.required = true;
     vpInput.min = '0';
     vpInput.max = '15';
     vpInput.className = 'vp-input';
 
+    const settlementsInput = document.createElement('input');
+    settlementsInput.type = 'number';
+    settlementsInput.placeholder = 'Set';
+    settlementsInput.required = true;
+    settlementsInput.min = '0';
+    settlementsInput.max = '5';
+    settlementsInput.value = '0';
+    settlementsInput.className = 'settlements-input';
+
+    const citiesInput = document.createElement('input');
+    citiesInput.type = 'number';
+    citiesInput.placeholder = 'City';
+    citiesInput.required = true;
+    citiesInput.min = '0';
+    citiesInput.max = '4';
+    citiesInput.value = '0';
+    citiesInput.className = 'cities-input';
+
+    const metropolisCheckbox = document.createElement('input');
+    metropolisCheckbox.type = 'checkbox';
+    metropolisCheckbox.className = 'metropolis-checkbox';
+
+    const longestRoadCheckbox = document.createElement('input');
+    longestRoadCheckbox.type = 'checkbox';
+    longestRoadCheckbox.className = 'longest-road-checkbox';
+
     row.appendChild(label);
     row.appendChild(playerSelect);
     row.appendChild(vpInput);
+    row.appendChild(settlementsInput);
+    row.appendChild(citiesInput);
+    row.appendChild(metropolisCheckbox);
+    row.appendChild(longestRoadCheckbox);
     container.appendChild(row);
   }
 }
@@ -106,40 +148,44 @@ async function updateDashboard() {
 async function renderLeaderboard() {
   const endpoint = activeTab === 'global' ? '/api/stats' : `/api/stats/${activeTab}`;
   const tbody = document.getElementById('leaderboardBody');
-  tbody.innerHTML = '<tr><td colspan="6">Loading stats...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="11">Loading stats...</td></tr>';
 
-  try {
-    const res = await fetch(endpoint);
-    const data = await res.json();
-    const stats = data.playerStats;
+    try {
+      const res = await fetch(endpoint);
+      const data = await res.json();
+      const stats = data.playerStats;
 
-    tbody.innerHTML = '';
-    if (!stats || stats.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="6">No matches recorded yet.</td></tr>';
-      return;
+      tbody.innerHTML = '';
+      if (!stats || stats.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="11">No matches recorded yet.</td></tr>';
+        return;
+      }
+
+      stats.forEach(player => {
+        const tr = document.createElement('tr');
+        const winRatePct = (player.winRate * 100).toFixed(1) + '%';
+        const placementStr = Object.entries(player.placements)
+          .filter(([place, count]) => count > 0)
+          .map(([place, count]) => `${place}${getOrdinal(parseInt(place))}: ${count}`)
+          .join(', ');
+
+        tr.innerHTML = `
+          <td><strong>${escapeHtml(player.name)}</strong></td>
+          <td>${player.totalWins}</td>
+          <td>${player.totalLosses}</td>
+          <td>${winRatePct}</td>
+          <td>${player.currentStreak} (${player.maxStreak})</td>
+          <td>${player.totalSettlements || 0}</td>
+          <td>${player.totalCities || 0}</td>
+          <td>${player.totalMetropolises || 0}</td>
+          <td>${player.totalLongestRoads || 0}</td>
+          <td><small>${placementStr || 'None'}</small></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    } catch (err) {
+      tbody.innerHTML = '<tr><td colspan="11">Error loading leaderboards.</td></tr>';
     }
-
-    stats.forEach(player => {
-      const tr = document.createElement('tr');
-      const winRatePct = (player.winRate * 100).toFixed(1) + '%';
-      const placementStr = Object.entries(player.placements)
-        .filter(([place, count]) => count > 0)
-        .map(([place, count]) => `${place}${getOrdinal(parseInt(place))}: ${count}`)
-        .join(', ');
-
-      tr.innerHTML = `
-        <td><strong>${escapeHtml(player.name)}</strong></td>
-        <td>${player.totalWins}</td>
-        <td>${player.totalLosses}</td>
-        <td>${winRatePct}</td>
-        <td>${player.currentStreak} (${player.maxStreak})</td>
-        <td><small>${placementStr || 'None'}</small></td>
-      `;
-      tbody.appendChild(tr);
-    });
-  } catch (err) {
-    tbody.innerHTML = '<tr><td colspan="6">Error loading leaderboards.</td></tr>';
-  }
 }
 
 async function renderCrownsAndLineage() {
@@ -255,6 +301,11 @@ async function handleMatchSubmit(e) {
   for (let i = 0; i < rows.length; i++) {
     const select = rows[i].querySelector('.player-select');
     const vpVal = rows[i].querySelector('.vp-input').value;
+    const settlementsVal = rows[i].querySelector('.settlements-input').value;
+    const citiesVal = rows[i].querySelector('.cities-input').value;
+    const metropolisChecked = rows[i].querySelector('.metropolis-checkbox').checked;
+    const longestRoadChecked = rows[i].querySelector('.longest-road-checkbox').checked;
+    
     const playerId = select.value;
     const playerName = select.options[select.selectedIndex].text;
 
@@ -272,7 +323,11 @@ async function handleMatchSubmit(e) {
       playerId,
       playerName,
       place: i + 1,
-      victoryPoints: parseInt(vpVal, 10)
+      victoryPoints: parseInt(vpVal, 10),
+      settlements: parseInt(settlementsVal, 10) || 0,
+      cities: parseInt(citiesVal, 10) || 0,
+      metropolis: metropolisChecked,
+      longestRoad: longestRoadChecked
     });
   }
 
