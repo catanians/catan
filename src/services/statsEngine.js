@@ -17,6 +17,7 @@ const statsEngine = {
         placements: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 },
         currentStreak: 0,
         maxStreak: 0,
+        gamesWithStatsCount: 0,
         totalMetropolises: 0,
         totalCities: 0,
         totalSettlements: 0,
@@ -37,6 +38,7 @@ const statsEngine = {
             placements: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 },
             currentStreak: 0,
             maxStreak: 0,
+            gamesWithStatsCount: 0,
             totalMetropolises: 0,
             totalCities: 0,
             totalSettlements: 0,
@@ -47,10 +49,14 @@ const statsEngine = {
         const pStats = stats[pId];
         pStats.placements[p.place] = (pStats.placements[p.place] || 0) + 1;
 
-        pStats.totalMetropolises += typeof p.metropolis === 'boolean' ? (p.metropolis ? 1 : 0) : (parseInt(p.metropolis, 10) || 0);
-        pStats.totalCities += parseInt(p.cities, 10) || 0;
-        pStats.totalSettlements += parseInt(p.settlements, 10) || 0;
-        pStats.totalLongestRoads += p.longestRoad ? 1 : 0;
+        const hasDetails = p.settlements !== null && p.settlements !== undefined;
+        if (hasDetails) {
+          pStats.gamesWithStatsCount += 1;
+          pStats.totalMetropolises += typeof p.metropolis === 'boolean' ? (p.metropolis ? 1 : 0) : (parseInt(p.metropolis, 10) || 0);
+          pStats.totalCities += parseInt(p.cities, 10) || 0;
+          pStats.totalSettlements += parseInt(p.settlements, 10) || 0;
+          pStats.totalLongestRoads += p.longestRoad ? 1 : 0;
+        }
 
         if (p.place === 1) {
           pStats.totalWins += 1;
@@ -68,6 +74,13 @@ const statsEngine = {
     return Object.values(stats).map(pStats => {
       const totalGames = pStats.totalWins + pStats.totalLosses;
       pStats.winRate = totalGames > 0 ? (pStats.totalWins / totalGames) : 0;
+      
+      const count = pStats.gamesWithStatsCount;
+      pStats.avgSettlements = count > 0 ? (pStats.totalSettlements / count).toFixed(1) : '-';
+      pStats.avgCities = count > 0 ? (pStats.totalCities / count).toFixed(1) : '-';
+      pStats.avgMetropolises = count > 0 ? (pStats.totalMetropolises / count).toFixed(1) : '-';
+      pStats.longestRoadRate = count > 0 ? Math.round((pStats.totalLongestRoads / count) * 100) + '%' : '-';
+      
       return pStats;
     });
   }

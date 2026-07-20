@@ -91,28 +91,22 @@ function setupDivisionSelect() {
     const settlementsInput = document.createElement('input');
     settlementsInput.type = 'number';
     settlementsInput.placeholder = 'Set';
-    settlementsInput.required = true;
     settlementsInput.min = '0';
     settlementsInput.max = '5';
-    settlementsInput.value = '0';
     settlementsInput.className = 'settlements-input';
 
     const citiesInput = document.createElement('input');
     citiesInput.type = 'number';
     citiesInput.placeholder = 'City';
-    citiesInput.required = true;
     citiesInput.min = '0';
     citiesInput.max = '4';
-    citiesInput.value = '0';
     citiesInput.className = 'cities-input';
 
     const metropolisInput = document.createElement('input');
     metropolisInput.type = 'number';
     metropolisInput.placeholder = 'Metro';
-    metropolisInput.required = true;
     metropolisInput.min = '0';
     metropolisInput.max = '3';
-    metropolisInput.value = '0';
     metropolisInput.className = 'metropolis-input';
 
     const longestRoadCheckbox = document.createElement('input');
@@ -174,10 +168,10 @@ async function renderLeaderboard() {
           <td>${player.totalLosses}</td>
           <td>${winRatePct}</td>
           <td>${player.currentStreak} (${player.maxStreak})</td>
-          <td>${player.totalSettlements || 0}</td>
-          <td>${player.totalCities || 0}</td>
-          <td>${player.totalMetropolises || 0}</td>
-          <td>${player.totalLongestRoads || 0}</td>
+          <td>${player.avgSettlements}</td>
+          <td>${player.avgCities}</td>
+          <td>${player.avgMetropolises}</td>
+          <td>${player.longestRoadRate}</td>
           <td><small>${placementStr || 'None'}</small></td>
         `;
       tbody.appendChild(tr);
@@ -318,15 +312,16 @@ async function handleMatchSubmit(e) {
     }
     chosenPlayerIds.add(playerId);
 
+    const hasStats = settlementsVal !== '' || citiesVal !== '' || metropolisVal !== '';
+
     placements.push({
       playerId,
       playerName,
-      place: i + 1,
       victoryPoints: parseInt(vpVal, 10),
-      settlements: parseInt(settlementsVal, 10) || 0,
-      cities: parseInt(citiesVal, 10) || 0,
-      metropolis: parseInt(metropolisVal, 10) || 0,
-      longestRoad: longestRoadChecked
+      settlements: hasStats ? (parseInt(settlementsVal, 10) || 0) : null,
+      cities: hasStats ? (parseInt(citiesVal, 10) || 0) : null,
+      metropolis: hasStats ? (parseInt(metropolisVal, 10) || 0) : null,
+      longestRoad: hasStats ? longestRoadChecked : null
     });
   }
 
