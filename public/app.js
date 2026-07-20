@@ -398,7 +398,14 @@ async function handleMatchSubmit(e) {
   }
 
   const dateVal = document.getElementById('matchDate').value;
-  const playedAt = dateVal ? new Date(dateVal + 'T12:00:00Z').toISOString() : undefined;
+  let playedAt;
+  if (dateVal) {
+    if (dateVal.includes('T')) {
+      playedAt = new Date(dateVal).toISOString();
+    } else {
+      playedAt = new Date(dateVal + 'T12:00:00Z').toISOString();
+    }
+  }
 
   try {
     const res = await fetch('/api/matches', {
