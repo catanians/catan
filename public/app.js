@@ -135,6 +135,7 @@ async function updateDashboard() {
   setupDivisionSelect();
   await renderLeaderboard();
   await renderCrownsAndLineage();
+  await renderMatchHistory();
   renderHexBoard(playersList);
 }
 
