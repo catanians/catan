@@ -451,8 +451,12 @@ function renderHexBoard(players) {
         { q: -1, r: 1 }, { q: -1, r: 0 }, { q: 0, r: -1 }
       ];
 
+      let totalLandHexes = 19; // Standard Catan board size
+      if (stats.length > 19) totalLandHexes = 37;
+      if (stats.length > 37) totalLandHexes = 61; // Optional expansion
+
       const allLandHexes = [];
-      for (let i = 0; i < hexCoords.length; i++) {
+      for (let i = 0; i < totalLandHexes && i < hexCoords.length; i++) {
         const coord = hexCoords[i];
         if (i < stats.length) {
           allLandHexes.push({ player: stats[i], q: coord.q, r: coord.r, type: 'land', rank: i });
