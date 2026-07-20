@@ -50,7 +50,7 @@ describe('Crown and Match Service', () => {
     crown4 = await db.readItem('crown_division_4', 'CROWN');
     expect(crown4.defensesCount).toBe(1);
 
-    // 3. Match without Alice. Crown is not challenged.
+    // 3. Match without Alice. Crown goes to the winner (Bob).
     const match3Placements = [
       { playerId: 'p_bob', playerName: 'Bob', place: 1, victoryPoints: 10 },
       { playerId: 'p_charlie', playerName: 'Charlie', place: 2, victoryPoints: 8 },
@@ -58,10 +58,16 @@ describe('Crown and Match Service', () => {
       { playerId: 'p_eve', playerName: 'Eve', place: 4, victoryPoints: 5 }
     ];
     const m3 = await matchService.createMatch(4, match3Placements);
-    expect(m3.crownChallenged).toBe(false);
-    expect(m3.crownHolderAfter).toBe('p_alice');
+    expect(m3.crownChallenged).toBe(true);
+    expect(m3.crownDefended).toBe(false);
+    expect(m3.crownHolderBefore).toBe('p_alice');
+    expect(m3.crownHolderAfter).toBe('p_bob');
 
-    // 4. Alice plays and Bob wins. Bob takes the crown.
+    crown4 = await db.readItem('crown_division_4', 'CROWN');
+    expect(crown4.currentHolderId).toBe('p_bob');
+    expect(crown4.defensesCount).toBe(0);
+
+    // 4. Bob defends the crown.
     const match4Placements = [
       { playerId: 'p_bob', playerName: 'Bob', place: 1, victoryPoints: 10 },
       { playerId: 'p_alice', playerName: 'Alice', place: 2, victoryPoints: 9 },
@@ -70,11 +76,12 @@ describe('Crown and Match Service', () => {
     ];
     const m4 = await matchService.createMatch(4, match4Placements);
     expect(m4.crownChallenged).toBe(true);
-    expect(m4.crownDefended).toBe(false);
+    expect(m4.crownDefended).toBe(true);
+    expect(m4.crownHolderBefore).toBe('p_bob');
     expect(m4.crownHolderAfter).toBe('p_bob');
 
     crown4 = await db.readItem('crown_division_4', 'CROWN');
     expect(crown4.currentHolderId).toBe('p_bob');
-    expect(crown4.defensesCount).toBe(0);
+    expect(crown4.defensesCount).toBe(1);
   });
 });

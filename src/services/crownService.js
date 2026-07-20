@@ -50,17 +50,6 @@ const crownService = {
     }
 
     const currentHolderId = crownState.currentHolderId;
-    const holderPlayed = placements.some(p => p.playerId === currentHolderId);
-
-    if (!holderPlayed) {
-      return {
-        crownChallenged: false,
-        crownDefended: null,
-        crownHolderBefore: currentHolderId,
-        crownHolderAfter: currentHolderId
-      };
-    }
-
     const holderWon = winner.playerId === currentHolderId;
 
     if (holderWon) {
