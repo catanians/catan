@@ -61,7 +61,6 @@ function setupDivisionSelect() {
   const header = document.createElement('div');
   header.className = 'placement-header';
   header.innerHTML = `
-    <span>Rank</span>
     <span>Player</span>
     <span title="Victory Points">VP</span>
     <span title="Settlements">Settlements</span>
@@ -74,10 +73,6 @@ function setupDivisionSelect() {
   for (let i = 1; i <= div; i++) {
     const row = document.createElement('div');
     row.className = 'placement-row';
-
-    const label = document.createElement('span');
-    label.innerText = `${i}${getOrdinal(i)}`;
-    label.className = 'rank-label';
 
     const playerSelect = document.createElement('select');
     playerSelect.className = 'player-select';
@@ -124,7 +119,6 @@ function setupDivisionSelect() {
     longestRoadCheckbox.type = 'checkbox';
     longestRoadCheckbox.className = 'longest-road-checkbox';
 
-    row.appendChild(label);
     row.appendChild(playerSelect);
     row.appendChild(vpInput);
     row.appendChild(settlementsInput);

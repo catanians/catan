@@ -215,7 +215,7 @@ select:focus, input[type="text"]:focus, input[type="number"]:focus, input[type="
 
 .placement-header, .placement-row {
   display: grid;
-  grid-template-columns: 35px 2.5fr 1fr 1.8fr 1.3fr 1fr 1fr;
+  grid-template-columns: 2.5fr 1fr 1.8fr 1.3fr 1fr 1fr;
   align-items: center;
   gap: 8px;
   margin-bottom: 8px;
@@ -512,6 +512,6 @@ select:focus, input[type="text"]:focus, input[type="number"]:focus, input[type="
   display: none;
 }
 
-.placement-header span:nth-child(7) {
+.placement-header span:nth-child(6) {
   text-align: center;
 }
