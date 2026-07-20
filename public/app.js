@@ -233,23 +233,39 @@ async function renderCrownsAndLineage() {
           <img src="images/scroll.webp" alt="Scroll" class="scroll-img">
           <div class="scroll-content">
             <span class="crown-icon">👑</span>
-            <h3>${div}-Player Crown</h3>
+            <h3>${div}-Player ${div === 6 ? 'Belt' : 'Crown'}</h3>
             <div class="holder-name">${escapeHtml(crown.currentHolderName)}</div>
             <div class="defenses-info">⚔️ ${crown.defensesCount} Defense${crown.defensesCount !== 1 ? 's' : ''}</div>
           </div>
         `;
+        crownsContainer.appendChild(badge);
+
+        if (crown.interimHolderId) {
+          const interimBadge = document.createElement('div');
+          interimBadge.className = 'crown-badge interim-badge';
+          interimBadge.innerHTML = `
+            <img src="images/scroll.webp" alt="Scroll" class="scroll-img">
+            <div class="scroll-content">
+              <span class="crown-icon">⚔️</span>
+              <h3>${div}-Player INTERIM</h3>
+              <div class="holder-name interim-text">${escapeHtml(crown.interimHolderName)}</div>
+              <div class="defenses-info">🏆 ${crown.interimConsecutiveWins} Consecutive Win${crown.interimConsecutiveWins !== 1 ? 's' : ''}</div>
+            </div>
+          `;
+          crownsContainer.appendChild(interimBadge);
+        }
       } else {
         badge.innerHTML = `
           <img src="images/scroll.webp" alt="Scroll" class="scroll-img">
           <div class="scroll-content">
             <span class="crown-icon">🏰</span>
-            <h3>${div}-Player Crown</h3>
+            <h3>${div}-Player ${div === 6 ? 'Belt' : 'Crown'}</h3>
             <div class="holder-name vacant-text">Vacant</div>
             <div class="defenses-info">No champion crowned yet</div>
           </div>
         `;
+        crownsContainer.appendChild(badge);
       }
-      crownsContainer.appendChild(badge);
     });
 
     // Render Lineage Timeline
@@ -268,9 +284,10 @@ async function renderCrownsAndLineage() {
 
       const dateStr = new Date(reign.startedAt).toLocaleDateString();
       const activeLabel = reign.endedAt ? `Reigned until ${new Date(reign.endedAt).toLocaleDateString()}` : 'CURRENT CHAMPION';
+      const interimTag = reign.wasInterim ? ' <span class="interim-tag" style="color:#a8b2c1; font-size:0.8em;">(Promoted from Interim)</span>' : '';
 
       item.innerHTML = `
-        <div class="reign-title">${reign.division}-Player Crown: ${escapeHtml(reign.playerName)}</div>
+        <div class="reign-title">${reign.division}-Player ${reign.division === 6 ? 'Belt' : 'Crown'}: ${escapeHtml(reign.playerName)}${interimTag}</div>
         <div class="reign-details">
           Started: ${dateStr} | ${activeLabel} <br>
           Successful Defenses: <strong>${reign.successfulDefenses}</strong>
@@ -434,16 +451,21 @@ function renderHexBoard(players) {
         { q: -1, r: 1 }, { q: -1, r: 0 }, { q: 0, r: -1 }
       ];
 
-      const playerHexes = stats.map((player, index) => {
-        const coord = hexCoords[index % hexCoords.length];
-        return { player, q: coord.q, r: coord.r, type: 'land', rank: index };
-      });
+      const allLandHexes = [];
+      for (let i = 0; i < hexCoords.length; i++) {
+        const coord = hexCoords[i];
+        if (i < stats.length) {
+          allLandHexes.push({ player: stats[i], q: coord.q, r: coord.r, type: 'land', rank: i });
+        } else {
+          allLandHexes.push({ player: null, q: coord.q, r: coord.r, type: 'desert', rank: i });
+        }
+      }
 
-      const occupiedMap = new Set(playerHexes.map(h => `${h.q},${h.r}`));
+      const occupiedMap = new Set(allLandHexes.map(h => `${h.q},${h.r}`));
       const waterMap = new Set();
       const waterHexes = [];
 
-      playerHexes.forEach(h => {
+      allLandHexes.forEach(h => {
         neighborDirs.forEach(d => {
           const nq = h.q + d.q;
           const nr = h.r + d.r;
@@ -455,7 +477,7 @@ function renderHexBoard(players) {
         });
       });
 
-      const allHexes = [...playerHexes, ...waterHexes];
+      const allHexes = [...allLandHexes, ...waterHexes];
 
       let minX = Infinity, maxX = -Infinity;
       let minY = Infinity, maxY = -Infinity;
@@ -511,6 +533,9 @@ function renderHexBoard(players) {
               </div>
             </div>
           `;
+        } else if (h.type === 'desert') {
+          hex.classList.add('hex-desert');
+          hex.innerHTML = `<div class="hex-inner"></div>`;
         } else {
           hex.classList.add('hex-water');
           hex.innerHTML = `<div class="hex-inner"></div>`;

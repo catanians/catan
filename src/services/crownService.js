@@ -22,7 +22,11 @@ const crownService = {
         currentHolderName: winner.playerName,
         acquiredMatchId: matchId,
         acquiredAt: playedAt,
-        defensesCount: 0
+        defensesCount: 0,
+        interimHolderId: null,
+        interimHolderName: null,
+        interimAcquiredAt: null,
+        interimConsecutiveWins: 0
       };
       await db.createItem(crownState);
 
@@ -50,79 +54,180 @@ const crownService = {
     }
 
     const currentHolderId = crownState.currentHolderId;
-    const holderWon = winner.playerId === currentHolderId;
+    const isHolderPresent = placements.some(p => p.playerId === currentHolderId);
 
-    if (holderWon) {
-      crownState.defensesCount += 1;
-      await db.upsertItem(crownState);
+    if (isHolderPresent) {
+      // Real belt is on the line. Wipe any interim status.
+      crownState.interimHolderId = null;
+      crownState.interimHolderName = null;
+      crownState.interimAcquiredAt = null;
+      crownState.interimConsecutiveWins = 0;
 
-      const reigns = await db.queryItems({
-        query: "SELECT * FROM c WHERE c.partitionKey = 'CROWN_REIGN' AND c.division = @division AND c.playerId = @playerId",
-        parameters: [
-          { name: '@division', value: division },
-          { name: '@playerId', value: currentHolderId }
-        ]
-      });
-      const activeReign = reigns.find(r => r.endedMatchId === null);
-      if (activeReign) {
-        activeReign.successfulDefenses += 1;
-        await db.upsertItem(activeReign);
+      const holderWon = winner.playerId === currentHolderId;
+
+      if (holderWon) {
+        crownState.defensesCount += 1;
+        await db.upsertItem(crownState);
+
+        const reigns = await db.queryItems({
+          query: "SELECT * FROM c WHERE c.partitionKey = 'CROWN_REIGN' AND c.division = @division AND c.playerId = @playerId",
+          parameters: [
+            { name: '@division', value: division },
+            { name: '@playerId', value: currentHolderId }
+          ]
+        });
+        const activeReign = reigns.find(r => r.endedMatchId === null);
+        if (activeReign) {
+          activeReign.successfulDefenses += 1;
+          await db.upsertItem(activeReign);
+        }
+
+        return {
+          crownChallenged: true,
+          crownDefended: true,
+          crownHolderBefore: currentHolderId,
+          crownHolderAfter: currentHolderId
+        };
+      } else {
+        const previousHolderId = currentHolderId;
+
+        // End active reign
+        const reigns = await db.queryItems({
+          query: "SELECT * FROM c WHERE c.partitionKey = 'CROWN_REIGN' AND c.division = @division AND c.playerId = @playerId",
+          parameters: [
+            { name: '@division', value: division },
+            { name: '@playerId', value: currentHolderId }
+          ]
+        });
+        const activeReign = reigns.find(r => r.endedMatchId === null);
+        if (activeReign) {
+          activeReign.endedMatchId = matchId;
+          activeReign.endedAt = playedAt;
+          await db.upsertItem(activeReign);
+        }
+
+        // Start new reign
+        const newReign = {
+          id: `reign_${uuidv4()}`,
+          partitionKey: 'CROWN_REIGN',
+          type: 'crown_reign',
+          division,
+          playerId: winner.playerId,
+          playerName: winner.playerName,
+          startedMatchId: matchId,
+          startedAt: playedAt,
+          endedMatchId: null,
+          endedAt: null,
+          successfulDefenses: 0
+        };
+        await db.createItem(newReign);
+
+        // Update state
+        crownState.currentHolderId = winner.playerId;
+        crownState.currentHolderName = winner.playerName;
+        crownState.acquiredMatchId = matchId;
+        crownState.acquiredAt = playedAt;
+        crownState.defensesCount = 0;
+        await db.upsertItem(crownState);
+
+        return {
+          crownChallenged: true,
+          crownDefended: false,
+          crownHolderBefore: previousHolderId,
+          crownHolderAfter: winner.playerId
+        };
       }
-
-      return {
-        crownChallenged: true,
-        crownDefended: true,
-        crownHolderBefore: currentHolderId,
-        crownHolderAfter: currentHolderId
-      };
     } else {
-      const previousHolderId = currentHolderId;
+      // Crown Holder is ABSENT. Interim logic applies.
+      if (winner.playerId === crownState.interimHolderId) {
+        // Existing interim champ wins again
+        crownState.interimConsecutiveWins += 1;
 
-      // End active reign
-      const reigns = await db.queryItems({
-        query: "SELECT * FROM c WHERE c.partitionKey = 'CROWN_REIGN' AND c.division = @division AND c.playerId = @playerId",
-        parameters: [
-          { name: '@division', value: division },
-          { name: '@playerId', value: currentHolderId }
-        ]
-      });
-      const activeReign = reigns.find(r => r.endedMatchId === null);
-      if (activeReign) {
-        activeReign.endedMatchId = matchId;
-        activeReign.endedAt = playedAt;
-        await db.upsertItem(activeReign);
+        if (crownState.interimConsecutiveWins >= 2) {
+          // PROMOTION TO FULL CHAMPION!
+          const previousHolderId = crownState.currentHolderId;
+
+          // End the old real champ's reign
+          const reigns = await db.queryItems({
+            query: "SELECT * FROM c WHERE c.partitionKey = 'CROWN_REIGN' AND c.division = @division AND c.playerId = @playerId",
+            parameters: [
+              { name: '@division', value: division },
+              { name: '@playerId', value: previousHolderId }
+            ]
+          });
+          const activeReign = reigns.find(r => r.endedMatchId === null);
+          if (activeReign) {
+            activeReign.endedMatchId = matchId;
+            activeReign.endedAt = playedAt;
+            await db.upsertItem(activeReign);
+          }
+
+          // Start new real reign for promoted interim champ
+          const newReign = {
+            id: `reign_${uuidv4()}`,
+            partitionKey: 'CROWN_REIGN',
+            type: 'crown_reign',
+            division,
+            playerId: winner.playerId,
+            playerName: winner.playerName,
+            startedMatchId: matchId,
+            startedAt: playedAt,
+            endedMatchId: null,
+            endedAt: null,
+            successfulDefenses: 0,
+            wasInterim: true
+          };
+          await db.createItem(newReign);
+
+          // Update state to make them real champ, wipe interim
+          crownState.currentHolderId = winner.playerId;
+          crownState.currentHolderName = winner.playerName;
+          crownState.acquiredMatchId = matchId;
+          crownState.acquiredAt = playedAt;
+          crownState.defensesCount = 0;
+          
+          crownState.interimHolderId = null;
+          crownState.interimHolderName = null;
+          crownState.interimAcquiredAt = null;
+          crownState.interimConsecutiveWins = 0;
+
+          await db.upsertItem(crownState);
+
+          return {
+            crownChallenged: true, // It resulted in a real crown change
+            crownDefended: false,
+            crownHolderBefore: previousHolderId,
+            crownHolderAfter: winner.playerId,
+            interimPromotion: true
+          };
+        } else {
+          // Not promoted yet, just incrementing wins
+          await db.upsertItem(crownState);
+          return {
+            crownChallenged: false,
+            crownDefended: false,
+            crownHolderBefore: crownState.currentHolderId,
+            crownHolderAfter: crownState.currentHolderId,
+            interimUpdated: true
+          };
+        }
+      } else {
+        // Someone else wins the interim belt
+        crownState.interimHolderId = winner.playerId;
+        crownState.interimHolderName = winner.playerName;
+        crownState.interimAcquiredAt = playedAt;
+        crownState.interimConsecutiveWins = 1;
+        
+        await db.upsertItem(crownState);
+        
+        return {
+          crownChallenged: false,
+          crownDefended: false,
+          crownHolderBefore: crownState.currentHolderId,
+          crownHolderAfter: crownState.currentHolderId,
+          interimUpdated: true
+        };
       }
-
-      // Start new reign
-      const newReign = {
-        id: `reign_${uuidv4()}`,
-        partitionKey: 'CROWN_REIGN',
-        type: 'crown_reign',
-        division,
-        playerId: winner.playerId,
-        playerName: winner.playerName,
-        startedMatchId: matchId,
-        startedAt: playedAt,
-        endedMatchId: null,
-        endedAt: null,
-        successfulDefenses: 0
-      };
-      await db.createItem(newReign);
-
-      // Update state
-      crownState.currentHolderId = winner.playerId;
-      crownState.currentHolderName = winner.playerName;
-      crownState.acquiredMatchId = matchId;
-      crownState.acquiredAt = playedAt;
-      crownState.defensesCount = 0;
-      await db.upsertItem(crownState);
-
-      return {
-        crownChallenged: true,
-        crownDefended: false,
-        crownHolderBefore: previousHolderId,
-        crownHolderAfter: winner.playerId
-      };
     }
   },
 
