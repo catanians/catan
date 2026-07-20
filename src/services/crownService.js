@@ -182,11 +182,12 @@ const crownService = {
       resolved.playerName = player.name;
     }
 
-    let vp = parseInt(resolved.victoryPoints, 10);
-    if (isNaN(vp)) {
-      vp = idx === 0 ? 10 : (idx === 1 ? 8 : (idx === 2 ? 7 : (idx === 3 ? 6 : (idx === 4 ? 5 : 4))));
+    if (resolved.victoryPoints !== null && resolved.victoryPoints !== undefined) {
+      let vp = parseInt(resolved.victoryPoints, 10);
+      resolved.victoryPoints = isNaN(vp) ? null : vp;
+    } else {
+      resolved.victoryPoints = null;
     }
-    resolved.victoryPoints = vp;
 
     resolved.settlements = resolved.settlements !== undefined ? resolved.settlements : null;
     resolved.cities = resolved.cities !== undefined ? resolved.cities : null;
@@ -231,13 +232,23 @@ const crownService = {
         for (let idx = 0; idx < match.placements.length; idx++) {
           resolvedPlacements.push(await this.resolvePlacement(match.placements[idx], idx, players, match.division));
         }
-        resolvedPlacements.sort((a, b) => (b.victoryPoints || 0) - (a.victoryPoints || 0));
+        resolvedPlacements.sort((a, b) => {
+          if (a.place !== undefined && b.place !== undefined) {
+            return a.place - b.place;
+          }
+          return (b.victoryPoints || 0) - (a.victoryPoints || 0);
+        });
+        
         let currentRank = 1;
         resolvedPlacements.forEach((p, idx) => {
-          if (idx > 0 && (p.victoryPoints || 0) < (resolvedPlacements[idx - 1].victoryPoints || 0)) {
-            currentRank = idx + 1;
+          if (p.place !== undefined) {
+            currentRank = p.place;
+          } else {
+            if (idx > 0 && (p.victoryPoints || 0) < (resolvedPlacements[idx - 1].victoryPoints || 0)) {
+              currentRank = idx + 1;
+            }
+            p.place = currentRank;
           }
-          p.place = currentRank;
         });
         match.placements = resolvedPlacements;
         await db.upsertItem(match);

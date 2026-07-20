@@ -30,6 +30,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Event Listeners
   document.getElementById('divisionSelect').addEventListener('change', setupDivisionSelect);
+  document.getElementById('modeDetailed').addEventListener('change', setupDivisionSelect);
+  document.getElementById('modeSimple').addEventListener('change', setupDivisionSelect);
   document.getElementById('playerForm').addEventListener('submit', handlePlayerSubmit);
   document.getElementById('matchForm').addEventListener('submit', handleMatchSubmit);
 
@@ -56,69 +58,93 @@ async function fetchPlayers() {
 function setupDivisionSelect() {
   const div = parseInt(document.getElementById('divisionSelect').value, 10);
   const container = document.getElementById('placementInputsContainer');
+  const isSimpleMode = document.getElementById('modeSimple').checked;
   container.innerHTML = '';
 
   const header = document.createElement('div');
   header.className = 'placement-header';
-  header.innerHTML = `
-    <span>Player</span>
-    <span title="Victory Points">VP</span>
-    <span title="Settlements">Settlements</span>
-    <span title="Cities">Cities</span>
-    <span title="Metropolis">Metro</span>
-    <span title="Longest Road">Road</span>
-  `;
+  
+  if (isSimpleMode) {
+    header.innerHTML = `
+      <span>Role</span>
+      <span>Player</span>
+    `;
+    header.style.gridTemplateColumns = "1fr 2fr";
+  } else {
+    header.innerHTML = `
+      <span>Player</span>
+      <span title="Victory Points">VP</span>
+      <span title="Settlements">Settlements</span>
+      <span title="Cities">Cities</span>
+      <span title="Metropolis">Metro</span>
+      <span title="Longest Road">Road</span>
+    `;
+    header.style.gridTemplateColumns = "";
+  }
   container.appendChild(header);
 
   for (let i = 1; i <= div; i++) {
     const row = document.createElement('div');
     row.className = 'placement-row';
+    
+    if (isSimpleMode) {
+      row.style.gridTemplateColumns = "1fr 2fr";
+      const roleLabel = document.createElement('div');
+      roleLabel.className = 'rank-label';
+      roleLabel.innerText = i === 1 ? '👑 Winner' : 'Participant';
+      row.appendChild(roleLabel);
+    } else {
+      row.style.gridTemplateColumns = "";
+    }
 
     const playerSelect = document.createElement('select');
     playerSelect.className = 'player-select';
     playerSelect.required = true;
     playerSelect.innerHTML = `<option value="">-- Player --</option>` +
       playersList.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
-
-    const vpInput = document.createElement('input');
-    vpInput.type = 'number';
-    vpInput.placeholder = 'VP';
-    vpInput.required = true;
-    vpInput.min = '0';
-    vpInput.max = '15';
-    vpInput.className = 'vp-input';
-
-    const settlementsInput = document.createElement('input');
-    settlementsInput.type = 'number';
-    settlementsInput.placeholder = 'Set';
-    settlementsInput.min = '0';
-    settlementsInput.max = '5';
-    settlementsInput.className = 'settlements-input';
-
-    const citiesInput = document.createElement('input');
-    citiesInput.type = 'number';
-    citiesInput.placeholder = 'City';
-    citiesInput.min = '0';
-    citiesInput.max = '4';
-    citiesInput.className = 'cities-input';
-
-    const metropolisInput = document.createElement('input');
-    metropolisInput.type = 'number';
-    metropolisInput.placeholder = 'Metro';
-    metropolisInput.min = '0';
-    metropolisInput.max = '3';
-    metropolisInput.className = 'metropolis-input';
-
-    const longestRoadCheckbox = document.createElement('input');
-    longestRoadCheckbox.type = 'checkbox';
-    longestRoadCheckbox.className = 'longest-road-checkbox';
-
     row.appendChild(playerSelect);
-    row.appendChild(vpInput);
-    row.appendChild(settlementsInput);
-    row.appendChild(citiesInput);
-    row.appendChild(metropolisInput);
-    row.appendChild(longestRoadCheckbox);
+
+    if (!isSimpleMode) {
+      const vpInput = document.createElement('input');
+      vpInput.type = 'number';
+      vpInput.placeholder = 'VP';
+      vpInput.required = true;
+      vpInput.min = '0';
+      vpInput.max = '15';
+      vpInput.className = 'vp-input';
+
+      const settlementsInput = document.createElement('input');
+      settlementsInput.type = 'number';
+      settlementsInput.placeholder = 'Set';
+      settlementsInput.min = '0';
+      settlementsInput.max = '5';
+      settlementsInput.className = 'settlements-input';
+
+      const citiesInput = document.createElement('input');
+      citiesInput.type = 'number';
+      citiesInput.placeholder = 'City';
+      citiesInput.min = '0';
+      citiesInput.max = '4';
+      citiesInput.className = 'cities-input';
+
+      const metropolisInput = document.createElement('input');
+      metropolisInput.type = 'number';
+      metropolisInput.placeholder = 'Metro';
+      metropolisInput.min = '0';
+      metropolisInput.max = '3';
+      metropolisInput.className = 'metropolis-input';
+
+      const longestRoadCheckbox = document.createElement('input');
+      longestRoadCheckbox.type = 'checkbox';
+      longestRoadCheckbox.className = 'longest-road-checkbox';
+
+      row.appendChild(vpInput);
+      row.appendChild(settlementsInput);
+      row.appendChild(citiesInput);
+      row.appendChild(metropolisInput);
+      row.appendChild(longestRoadCheckbox);
+    }
+    
     container.appendChild(row);
   }
 }
@@ -291,15 +317,10 @@ async function handleMatchSubmit(e) {
   const rows = document.querySelectorAll('.placement-row');
   const placements = [];
   const chosenPlayerIds = new Set();
+  const isSimpleMatch = document.getElementById('modeSimple').checked;
 
   for (let i = 0; i < rows.length; i++) {
     const select = rows[i].querySelector('.player-select');
-    const vpVal = rows[i].querySelector('.vp-input').value;
-    const settlementsVal = rows[i].querySelector('.settlements-input').value;
-    const citiesVal = rows[i].querySelector('.cities-input').value;
-    const metropolisVal = rows[i].querySelector('.metropolis-input').value;
-    const longestRoadChecked = rows[i].querySelector('.longest-road-checkbox').checked;
-
     const playerId = select.value;
     const playerName = select.options[select.selectedIndex].text;
 
@@ -313,30 +334,51 @@ async function handleMatchSubmit(e) {
     }
     chosenPlayerIds.add(playerId);
 
-    const hasStats = settlementsVal !== '' || citiesVal !== '' || metropolisVal !== '';
+    if (isSimpleMatch) {
+      placements.push({
+        playerId,
+        playerName,
+        place: i === 0 ? 1 : 2,
+        victoryPoints: null,
+        settlements: null,
+        cities: null,
+        metropolis: null,
+        longestRoad: null
+      });
+    } else {
+      const vpVal = rows[i].querySelector('.vp-input').value;
+      const settlementsVal = rows[i].querySelector('.settlements-input').value;
+      const citiesVal = rows[i].querySelector('.cities-input').value;
+      const metropolisVal = rows[i].querySelector('.metropolis-input').value;
+      const longestRoadChecked = rows[i].querySelector('.longest-road-checkbox').checked;
+      
+      const hasStats = settlementsVal !== '' || citiesVal !== '' || metropolisVal !== '';
 
-    placements.push({
-      playerId,
-      playerName,
-      victoryPoints: parseInt(vpVal, 10),
-      settlements: hasStats ? (parseInt(settlementsVal, 10) || 0) : null,
-      cities: hasStats ? (parseInt(citiesVal, 10) || 0) : null,
-      metropolis: hasStats ? (parseInt(metropolisVal, 10) || 0) : null,
-      longestRoad: hasStats ? longestRoadChecked : null
-    });
+      placements.push({
+        playerId,
+        playerName,
+        victoryPoints: parseInt(vpVal, 10),
+        settlements: hasStats ? (parseInt(settlementsVal, 10) || 0) : null,
+        cities: hasStats ? (parseInt(citiesVal, 10) || 0) : null,
+        metropolis: hasStats ? (parseInt(metropolisVal, 10) || 0) : null,
+        longestRoad: hasStats ? longestRoadChecked : null
+      });
+    }
   }
 
-  // Sort placements dynamically by victory points descending
-  placements.sort((a, b) => b.victoryPoints - a.victoryPoints);
+  if (!isSimpleMatch) {
+    // Sort placements dynamically by victory points descending
+    placements.sort((a, b) => b.victoryPoints - a.victoryPoints);
 
-  // Assign place values with standard competition ranking (ties get same rank, skip ranks after ties)
-  let currentRank = 1;
-  placements.forEach((p, idx) => {
-    if (idx > 0 && p.victoryPoints < placements[idx - 1].victoryPoints) {
-      currentRank = idx + 1;
-    }
-    p.place = currentRank;
-  });
+    // Assign place values with standard competition ranking
+    let currentRank = 1;
+    placements.forEach((p, idx) => {
+      if (idx > 0 && p.victoryPoints < placements[idx - 1].victoryPoints) {
+        currentRank = idx + 1;
+      }
+      p.place = currentRank;
+    });
+  }
 
   const dateVal = document.getElementById('matchDate').value;
   const playedAt = dateVal ? new Date(dateVal + 'T12:00:00Z').toISOString() : undefined;
@@ -345,7 +387,7 @@ async function handleMatchSubmit(e) {
     const res = await fetch('/api/matches', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ division, placements, playedAt })
+      body: JSON.stringify({ division, placements, playedAt, isSimpleMatch })
     });
 
     if (!res.ok) {

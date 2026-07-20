@@ -3,7 +3,7 @@ const crownService = require('./crownService');
 const { v4: uuidv4 } = require('uuid');
 
 const matchService = {
-  async createMatch(division, placements, playedAt) {
+  async createMatch(division, placements, playedAt, isSimpleMatch = false) {
     if (![4, 5, 6].includes(division)) {
       throw new Error('Invalid division. Must be 4, 5, or 6 players.');
     }
@@ -23,13 +23,23 @@ const matchService = {
       resolvedPlacements.push(await crownService.resolvePlacement(placements[idx], idx, players, division));
     }
 
-    resolvedPlacements.sort((a, b) => (b.victoryPoints || 0) - (a.victoryPoints || 0));
+    resolvedPlacements.sort((a, b) => {
+      if (a.place !== undefined && b.place !== undefined) {
+        return a.place - b.place;
+      }
+      return (b.victoryPoints || 0) - (a.victoryPoints || 0);
+    });
+    
     let currentRank = 1;
     resolvedPlacements.forEach((p, idx) => {
-      if (idx > 0 && (p.victoryPoints || 0) < (resolvedPlacements[idx - 1].victoryPoints || 0)) {
-        currentRank = idx + 1;
+      if (p.place !== undefined) {
+        currentRank = p.place;
+      } else {
+        if (idx > 0 && (p.victoryPoints || 0) < (resolvedPlacements[idx - 1].victoryPoints || 0)) {
+          currentRank = idx + 1;
+        }
+        p.place = currentRank;
       }
-      p.place = currentRank;
     });
 
     const match = {
@@ -38,6 +48,7 @@ const matchService = {
       type: 'match',
       division,
       playedAt: date,
+      isSimpleMatch: !!isSimpleMatch,
       placements: resolvedPlacements
     };
 

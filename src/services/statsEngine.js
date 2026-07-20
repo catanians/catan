@@ -47,7 +47,10 @@ const statsEngine = {
         }
 
         const pStats = stats[pId];
-        pStats.placements[p.place] = (pStats.placements[p.place] || 0) + 1;
+        
+        if (!match.isSimpleMatch || p.place === 1) {
+          pStats.placements[p.place] = (pStats.placements[p.place] || 0) + 1;
+        }
 
         const hasDetails = p.settlements !== null && p.settlements !== undefined;
         if (hasDetails) {

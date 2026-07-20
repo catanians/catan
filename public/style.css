@@ -515,3 +515,14 @@ select:focus, input[type="text"]:focus, input[type="number"]:focus, input[type="
 .placement-header span:nth-child(6) {
   text-align: center;
 }
+
+.mode-toggle-options {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  font-family: var(--font-data);
+}
+.mode-toggle-options input[type="radio"] {
+  width: auto;
+  margin-right: 5px;
+}

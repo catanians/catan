@@ -37,6 +37,15 @@
     <section class="catan-card log-box">
       <h2 class="section-title">Log a Match</h2>
       <form id="matchForm">
+        <div class="form-group mode-toggle-group">
+          <label>Entry Mode:</label>
+          <div class="mode-toggle-options">
+            <input type="radio" id="modeDetailed" name="entryMode" value="detailed" checked>
+            <label for="modeDetailed">Detailed Stats</label>
+            <input type="radio" id="modeSimple" name="entryMode" value="simple">
+            <label for="modeSimple">Simple (Winner Only)</label>
+          </div>
+        </div>
         <div class="form-group">
           <label for="divisionSelect">Game Division:</label>
           <select id="divisionSelect" required>
