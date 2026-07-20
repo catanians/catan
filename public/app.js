@@ -24,6 +24,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupDivisionSelect();
   await updateDashboard();
 
+  // Default date to today
+  const dateInput = document.getElementById('matchDate');
+  dateInput.value = new Date().toISOString().split('T')[0];
+
   // Event Listeners
   document.getElementById('divisionSelect').addEventListener('change', setupDivisionSelect);
   document.getElementById('playerForm').addEventListener('submit', handlePlayerSubmit);
@@ -272,11 +276,14 @@ async function handleMatchSubmit(e) {
     });
   }
 
+  const dateVal = document.getElementById('matchDate').value;
+  const playedAt = dateVal ? new Date(dateVal + 'T12:00:00Z').toISOString() : undefined;
+
   try {
     const res = await fetch('/api/matches', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ division, placements })
+      body: JSON.stringify({ division, placements, playedAt })
     });
 
     if (!res.ok) {

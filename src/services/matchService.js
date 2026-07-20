@@ -3,7 +3,7 @@ const crownService = require('./crownService');
 const { v4: uuidv4 } = require('uuid');
 
 const matchService = {
-  async createMatch(division, placements) {
+  async createMatch(division, placements, playedAt) {
     if (![4, 5, 6].includes(division)) {
       throw new Error('Invalid division. Must be 4, 5, or 6 players.');
     }
@@ -12,16 +12,16 @@ const matchService = {
     }
 
     const matchId = `match_${uuidv4()}`;
-    const playedAt = new Date().toISOString();
+    const date = playedAt || new Date().toISOString();
 
-    const crownResult = await crownService.processMatchCrown(matchId, division, placements, playedAt);
+    const crownResult = await crownService.processMatchCrown(matchId, division, placements, date);
 
     const match = {
       id: matchId,
       partitionKey: 'MATCH',
       type: 'match',
       division,
-      playedAt,
+      playedAt: date,
       placements,
       crownChallenged: crownResult.crownChallenged,
       crownDefended: crownResult.crownDefended,

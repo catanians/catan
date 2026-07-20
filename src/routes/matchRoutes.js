@@ -13,8 +13,8 @@ router.get('/', async (req, res) => {
 
 router.post('/', async (req, res) => {
   try {
-    const { division, placements } = req.body;
-    const match = await matchService.createMatch(parseInt(division, 10), placements);
+    const { division, placements, playedAt } = req.body;
+    const match = await matchService.createMatch(parseInt(division, 10), placements, playedAt);
     res.status(201).json(match);
   } catch (err) {
     res.status(400).json({ error: err.message });
