@@ -485,3 +485,59 @@ function renderHexBoard(players) {
       console.error('Error rendering hex board:', err);
     });
 }
+
+async function renderMatchHistory() {
+  const tbody = document.getElementById('matchHistoryBody');
+  if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="4">Loading match history...</td></tr>';
+
+  try {
+    const res = await fetch('/api/matches');
+    const matches = await res.json();
+
+    tbody.innerHTML = '';
+    if (!matches || matches.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="4">No matches played yet.</td></tr>';
+      return;
+    }
+
+    // Sort matches chronologically desc (most recent first)
+    matches.sort((a, b) => new Date(b.playedAt) - new Date(a.playedAt));
+
+    matches.forEach(match => {
+      const tr = document.createElement('tr');
+      
+      const dateStr = new Date(match.playedAt).toLocaleDateString('en-US', {
+        year: 'numeric', month: 'short', day: 'numeric'
+      });
+
+      const winner = match.placements.find(p => p.place === 1);
+      const winnerName = winner ? winner.playerName : 'Unknown';
+
+      // Build placements detailed details (VP, settlements, cities, metros, roads)
+      const placementsStr = match.placements
+        .sort((a, b) => a.place - b.place)
+        .map(p => {
+          const stats = [];
+          stats.push(`${p.victoryPoints}VP`);
+          if (p.settlements !== null && p.settlements !== undefined) stats.push(`${p.settlements} Set`);
+          if (p.cities !== null && p.cities !== undefined) stats.push(`${p.cities} City`);
+          if (p.metropolis !== null && p.metropolis !== undefined) stats.push(`${p.metropolis} Metro`);
+          if (p.longestRoad) stats.push(`Road`);
+          const placeSuffix = p.place === 1 ? 'st' : p.place === 2 ? 'nd' : p.place === 3 ? 'rd' : 'th';
+          return `<strong>${p.place}${placeSuffix}:</strong> ${escapeHtml(p.playerName)} (${stats.join(', ')})`;
+        })
+        .join('<br>');
+
+      tr.innerHTML = `
+        <td>${dateStr}</td>
+        <td>${match.division}-Player</td>
+        <td><strong>${escapeHtml(winnerName)}</strong></td>
+        <td style="text-align: left;"><small>${placementsStr}</small></td>
+      `;
+      tbody.appendChild(tr);
+    });
+  } catch (err) {
+    tbody.innerHTML = '<tr><td colspan="4">Error loading match history.</td></tr>';
+  }
+}
