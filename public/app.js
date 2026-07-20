@@ -441,6 +441,14 @@ function renderHexBoard(players) {
     .then(data => {
       const stats = data.playerStats;
 
+      let currentTieRank = 0;
+      stats.forEach((p, idx) => {
+        if (idx > 0 && p.totalWins < stats[idx - 1].totalWins) {
+          currentTieRank++;
+        }
+        p.tieRank = currentTieRank;
+      });
+
       const hexWidth = 120;
       const hexHeight = 104;
       const renderWidth = 124;
@@ -518,11 +526,11 @@ function renderHexBoard(players) {
           hex.classList.add(`hex-${resource}`);
 
           const wins = h.player.totalWins || 0;
-          const isRed = h.rank === 0 || wins >= 5;
+          const isRed = h.player.tieRank === 0 || wins >= 5;
           const numClass = isRed ? 'token-number is-red' : 'token-number';
           const dotClass = isRed ? 'token-dot is-red' : 'token-dot';
 
-          const dotCount = wins === 0 ? 1 : Math.min(5, Math.max(1, wins + 1));
+          const dotCount = Math.max(1, 5 - h.player.tieRank);
           let dotsHtml = '';
           for (let i = 0; i < dotCount; i++) {
             dotsHtml += `<div class="${dotClass}"></div>`;

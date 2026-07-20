@@ -157,6 +157,13 @@ body {
   letter-spacing: 0.5px;
 }
 
+.main-logo {
+  max-width: 400px;
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+}
+
 .crown-badge .crown-icon {
   font-size: 1.8rem;
   margin-bottom: 2px;

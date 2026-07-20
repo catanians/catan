@@ -241,36 +241,12 @@ const crownService = {
     return await db.queryItems({
       query: "SELECT * FROM c WHERE c.partitionKey = 'CROWN'"
     });
-  },  async resolvePlacement(p, idx, players, division) {
-    if (typeof p === 'string') {
-      const trimmedName = p.trim();
-      let player = players.find(pl => pl.name.toLowerCase() === trimmedName.toLowerCase());
-      if (!player) {
-        player = {
-          id: `player_${uuidv4()}`,
-          partitionKey: 'PLAYER',
-          type: 'player',
-          name: trimmedName,
-          createdAt: new Date().toISOString()
-        };
-        await db.createItem(player);
-        players.push(player);
-      }
-      return {
-        playerId: player.id,
-        playerName: player.name,
-        victoryPoints: idx === 0 ? 10 : (idx === 1 ? 8 : (idx === 2 ? 7 : (idx === 3 ? 6 : (idx === 4 ? 5 : 4)))),
-        place: idx + 1,
-        settlements: null,
-        cities: null,
-        metropolis: null,
-        longestRoad: null
-      };
-    }
-
-    const resolved = { ...p };
-    if (!resolved.playerId && resolved.playerName) {
-      const trimmedName = resolved.playerName.trim();
+  },
+  async resolvePlacement(p, idx, players, division) {
+    const resolved = typeof p === 'string' ? { playerName: p.trim() } : { ...p };
+    
+    const trimmedName = (resolved.playerName || resolved.name || '').trim();
+    if (trimmedName) {
       let player = players.find(pl => pl.name.toLowerCase() === trimmedName.toLowerCase());
       if (!player) {
         player = {
@@ -325,7 +301,7 @@ const crownService = {
 
     // 3. Re-process matches in order
     for (const match of matches) {
-      let needsFix = match.placements.some(p => typeof p === 'string' || !p.playerId || p.place === undefined || p.place === null);
+      let needsFix = true; // FORCE FIX TO RESOLVE BAD UUIDS
       if (!needsFix) {
         // Double check winner has place === 1
         const hasWinner = match.placements.some(p => p.place === 1);
