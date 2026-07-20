@@ -250,7 +250,7 @@ const crownService = {
       let player = players.find(pl => pl.name.toLowerCase() === trimmedName.toLowerCase());
       if (!player) {
         player = {
-          id: `player_${uuidv4()}`,
+          id: resolved.playerId || `player_${uuidv4()}`,
           partitionKey: 'PLAYER',
           type: 'player',
           name: trimmedName,
@@ -265,9 +265,9 @@ const crownService = {
 
     if (resolved.victoryPoints !== null && resolved.victoryPoints !== undefined) {
       let vp = parseInt(resolved.victoryPoints, 10);
-      resolved.victoryPoints = isNaN(vp) ? null : vp;
+      resolved.victoryPoints = isNaN(vp) ? ((idx === 0 || resolved.place === 1) ? 10 : null) : vp;
     } else {
-      resolved.victoryPoints = null;
+      resolved.victoryPoints = (idx === 0 || resolved.place === 1) ? 10 : null;
     }
 
     resolved.settlements = resolved.settlements !== undefined ? resolved.settlements : null;

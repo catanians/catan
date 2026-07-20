@@ -8,6 +8,10 @@ const mockFilePath = path.join(__dirname, '../data/db.json');
 let mockDbData = [];
 
 function loadMockData() {
+  if (process.env.NODE_ENV === 'test') {
+    mockDbData = [];
+    return;
+  }
   if (!fs.existsSync(path.dirname(mockFilePath))) {
     fs.mkdirSync(path.dirname(mockFilePath), { recursive: true });
   }
@@ -25,6 +29,7 @@ function loadMockData() {
 }
 
 function saveMockData() {
+  if (process.env.NODE_ENV === 'test') return;
   fs.writeFileSync(mockFilePath, JSON.stringify(mockDbData, null, 2));
 }
 
@@ -97,19 +102,64 @@ const db = {
     if (config.USE_MOCK) {
       let filtered = [...mockDbData];
       const params = querySpec.parameters || [];
+      const queryStr = querySpec.query || '';
 
-      const pkParam = params.find(p => p.name === '@pk');
-      if (pkParam) {
-        filtered = filtered.filter(i => i.partitionKey === pkParam.value);
+      // Parse partitionKey from query string or parameters
+      let pkValue = null;
+      const pkMatch = queryStr.match(/c\.partitionKey\s*=\s*'([^']+)'/i);
+      if (pkMatch) {
+        pkValue = pkMatch[1];
+      } else {
+        const pkParam = params.find(p => p.name === '@pk');
+        if (pkParam) pkValue = pkParam.value;
       }
-      const divParam = params.find(p => p.name === '@division');
-      if (divParam) {
-        filtered = filtered.filter(i => i.division === divParam.value);
+
+      // Parse type from query string or parameters
+      let typeValue = null;
+      const typeMatch = queryStr.match(/c\.type\s*=\s*'([^']+)'/i);
+      if (typeMatch) {
+        typeValue = typeMatch[1];
+      } else {
+        const typeParam = params.find(p => p.name === '@type');
+        if (typeParam) typeValue = typeParam.value;
       }
-      const playerParam = params.find(p => p.name === '@playerId');
-      if (playerParam) {
-        filtered = filtered.filter(i => i.playerId === playerParam.value);
+
+      // Filter by partitionKey
+      if (pkValue) {
+        filtered = filtered.filter(i => i.partitionKey === pkValue);
       }
+
+      // Filter by type
+      if (typeValue) {
+        filtered = filtered.filter(i => i.type === typeValue);
+      }
+
+      // Filter by division
+      let divisionValue = null;
+      const divMatch = queryStr.match(/c\.division\s*=\s*(\d+)/i);
+      if (divMatch) {
+        divisionValue = parseInt(divMatch[1], 10);
+      } else {
+        const divParam = params.find(p => p.name === '@division');
+        if (divParam) divisionValue = divParam.value;
+      }
+      if (divisionValue !== null && divisionValue !== undefined) {
+        filtered = filtered.filter(i => i.division === divisionValue);
+      }
+
+      // Filter by playerId
+      let playerIdValue = null;
+      const playerMatch = queryStr.match(/c\.playerId\s*=\s*'([^']+)'/i);
+      if (playerMatch) {
+        playerIdValue = playerMatch[1];
+      } else {
+        const playerParam = params.find(p => p.name === '@playerId');
+        if (playerParam) playerIdValue = playerParam.value;
+      }
+      if (playerIdValue !== null && playerIdValue !== undefined) {
+        filtered = filtered.filter(i => i.playerId === playerIdValue);
+      }
+
       return filtered;
     }
     const { resources } = await container.items.query(querySpec).fetchAll();

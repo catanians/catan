@@ -44,6 +44,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       renderLeaderboard();
     });
   });
+
+  // Init Gallery
+  initGallery();
 });
 
 async function fetchPlayers() {
@@ -627,4 +630,232 @@ async function renderMatchHistory() {
   } catch (err) {
     tbody.innerHTML = '<tr><td colspan="4">Error loading match history.</td></tr>';
   }
+}
+
+// ==========================================
+// MEMORIES GALLERY CODE
+// ==========================================
+let galleryImages = [];
+let currentSlideIndex = 0;
+
+async function initGallery() {
+  const fileInput = document.getElementById('galleryFileInput');
+  const fileLabel = document.getElementById('fileNameLabel');
+  const dateInput = document.getElementById('galleryDateInput');
+  const form = document.getElementById('galleryForm');
+
+  // Set default date to today
+  if (dateInput) {
+    dateInput.value = new Date().toISOString().split('T')[0];
+  }
+
+  // Update file input name label on change
+  if (fileInput && fileLabel) {
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      fileLabel.innerText = file ? file.name : 'No file chosen';
+    });
+  }
+
+  // Slide navigation
+  document.getElementById('galleryPrevBtn')?.addEventListener('click', () => {
+    navigateSlider(-1);
+  });
+  document.getElementById('galleryNextBtn')?.addEventListener('click', () => {
+    navigateSlider(1);
+  });
+
+  // Handle image upload submission
+  if (form) {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const fileInput = document.getElementById('galleryFileInput');
+      const dateInput = document.getElementById('galleryDateInput');
+      const descInput = document.getElementById('galleryDescInput');
+      const submitBtn = form.querySelector('button[type="submit"]');
+
+      let imageSource = '';
+      
+      if (fileInput.files.length > 0) {
+        // Read file as base64
+        try {
+          submitBtn.disabled = true;
+          submitBtn.innerText = 'Uploading Photo...';
+          imageSource = await readFileAsBase64(fileInput.files[0]);
+        } catch (err) {
+          alert('Failed to read image file.');
+          submitBtn.disabled = false;
+          submitBtn.innerText = 'Add to Photos';
+          return;
+        }
+      } else {
+        alert('Please choose an image file.');
+        return;
+      }
+
+      const payload = {
+        image: imageSource,
+        date: dateInput.value,
+        description: descInput.value || ''
+      };
+
+      try {
+        const res = await fetch('/api/gallery', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) {
+          const errData = await res.json();
+          throw new Error(errData.error || 'Server error uploading image');
+        }
+
+        const newImage = await res.json();
+
+        // Reset form and reload gallery
+        form.reset();
+        if (fileLabel) fileLabel.innerText = 'No file chosen';
+        if (dateInput) dateInput.value = new Date().toISOString().split('T')[0];
+        
+        await fetchGalleryImages();
+        
+        // Show the newly added slide (which is sorted by date)
+        const newIdx = galleryImages.findIndex(img => img.id === newImage.id);
+        if (newIdx !== -1) {
+          currentSlideIndex = newIdx;
+        } else {
+          currentSlideIndex = galleryImages.length - 1; // Fallback to end
+        }
+        renderSlider();
+      } catch (err) {
+        console.error(err);
+        alert(`Error: ${err.message}`);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerText = 'Add to Photos';
+      }
+    });
+  }
+
+  await fetchGalleryImages();
+  renderSlider();
+}
+
+async function fetchGalleryImages() {
+  try {
+    const res = await fetch('/api/gallery');
+    galleryImages = await res.json();
+  } catch (err) {
+    console.error('Error fetching gallery images:', err);
+  }
+}
+
+function readFileAsBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = (err) => reject(err);
+    reader.readAsDataURL(file);
+  });
+}
+
+function navigateSlider(direction) {
+  if (galleryImages.length <= 1) return;
+  let newIdx = currentSlideIndex + direction;
+  if (newIdx < 0) {
+    newIdx = galleryImages.length - 1;
+  } else if (newIdx >= galleryImages.length) {
+    newIdx = 0;
+  }
+  showSlide(newIdx);
+}
+
+function showSlide(index) {
+  if (galleryImages.length === 0) return;
+  currentSlideIndex = index;
+  
+  // Update slides
+  const slides = document.querySelectorAll('.gallery-slide');
+  slides.forEach((slide, idx) => {
+    if (idx === index) {
+      slide.classList.add('active');
+    } else {
+      slide.classList.remove('active');
+    }
+  });
+
+  // Update dots
+  const dots = document.querySelectorAll('.gallery-dot');
+  dots.forEach((dot, idx) => {
+    if (idx === index) {
+      dot.classList.add('active');
+    } else {
+      dot.classList.remove('active');
+    }
+  });
+}
+
+function renderSlider() {
+  const slider = document.getElementById('gallerySlider');
+  const dotsContainer = document.getElementById('galleryDots');
+  if (!slider || !dotsContainer) return;
+
+  slider.innerHTML = '';
+  dotsContainer.innerHTML = '';
+
+  if (galleryImages.length === 0) {
+    slider.innerHTML = `
+      <div class="gallery-slide-placeholder">
+        <p>No memories logged yet. Add the first picture below!</p>
+      </div>
+    `;
+    return;
+  }
+
+  // Cap currentSlideIndex inside valid bounds
+  if (currentSlideIndex >= galleryImages.length) {
+    currentSlideIndex = Math.max(0, galleryImages.length - 1);
+  }
+
+  galleryImages.forEach((img, idx) => {
+    const slide = document.createElement('div');
+    slide.className = `gallery-slide ${idx === currentSlideIndex ? 'active' : ''}`;
+    
+    // Format Date (YYYY-MM-DD to friendly string)
+    let friendlyDate = img.date;
+    try {
+      const parts = img.date.split('-');
+      if (parts.length === 3) {
+        // Use UTC-friendly date creation to avoid local timezone shifts
+        const dateObj = new Date(Date.UTC(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10)));
+        friendlyDate = dateObj.toLocaleDateString(undefined, {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          timeZone: 'UTC'
+        });
+      }
+    } catch (e) {
+      // Fallback
+    }
+
+    slide.innerHTML = `
+      <img src="${img.imageUrl}" alt="${escapeHtml(img.description || 'Catan memory')}" onerror="this.src='https://placehold.co/800x400/1a1510/dfd7c2?text=Image+Load+Failed'">
+      <div class="gallery-slide-caption">
+        <span class="gallery-slide-date">${escapeHtml(friendlyDate)}</span>
+        <span class="gallery-slide-desc">${escapeHtml(img.description || 'No caption')}</span>
+      </div>
+    `;
+    slider.appendChild(slide);
+
+    // Create Dot
+    const dot = document.createElement('div');
+    dot.className = `gallery-dot ${idx === currentSlideIndex ? 'active' : ''}`;
+    dot.addEventListener('click', () => {
+      showSlide(idx);
+    });
+    dotsContainer.appendChild(dot);
+  });
 }

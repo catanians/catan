@@ -6,13 +6,15 @@ const db = require('./db');
 const playerRoutes = require('./routes/playerRoutes');
 const matchRoutes = require('./routes/matchRoutes');
 const statsRoutes = require('./routes/statsRoutes');
+const galleryRoutes = require('./routes/galleryRoutes');
 const crownService = require('./services/crownService');
+const galleryService = require('./services/galleryService');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 
 // Static Assets Folder
 app.use(express.static(path.join(__dirname, '../public')));
@@ -21,6 +23,7 @@ app.use(express.static(path.join(__dirname, '../public')));
 app.use('/api/players', playerRoutes);
 app.use('/api/matches', matchRoutes);
 app.use('/api/stats', statsRoutes);
+app.use('/api/gallery', galleryRoutes);
 
 // UFC Crown endpoint specifically requested in checklist
 app.get('/api/crowns', async (req, res) => {
@@ -50,6 +53,7 @@ app.get('*', (req, res) => {
 
 async function startServer() {
   await db.init();
+  galleryService.ensureUploadDir();
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
   });

@@ -58,16 +58,17 @@ describe('Crown and Match Service', () => {
       { playerId: 'p_eve', playerName: 'Eve', place: 4, victoryPoints: 5 }
     ];
     const m3 = await matchService.createMatch(4, match3Placements);
-    expect(m3.crownChallenged).toBe(true);
+    expect(m3.crownChallenged).toBe(false);
     expect(m3.crownDefended).toBe(false);
     expect(m3.crownHolderBefore).toBe('p_alice');
-    expect(m3.crownHolderAfter).toBe('p_bob');
+    expect(m3.crownHolderAfter).toBe('p_alice');
 
     crown4 = await db.readItem('crown_division_4', 'CROWN');
-    expect(crown4.currentHolderId).toBe('p_bob');
-    expect(crown4.defensesCount).toBe(0);
+    expect(crown4.currentHolderId).toBe('p_alice');
+    expect(crown4.interimHolderId).toBe('p_bob');
+    expect(crown4.defensesCount).toBe(1);
 
-    // 4. Bob defends the crown.
+    // 4. Bob defeats the champion (Alice is present). Crown is won by Bob!
     const match4Placements = [
       { playerId: 'p_bob', playerName: 'Bob', place: 1, victoryPoints: 10 },
       { playerId: 'p_alice', playerName: 'Alice', place: 2, victoryPoints: 9 },
@@ -76,13 +77,13 @@ describe('Crown and Match Service', () => {
     ];
     const m4 = await matchService.createMatch(4, match4Placements);
     expect(m4.crownChallenged).toBe(true);
-    expect(m4.crownDefended).toBe(true);
-    expect(m4.crownHolderBefore).toBe('p_bob');
+    expect(m4.crownDefended).toBe(false); // Alice lost, so not a defense
+    expect(m4.crownHolderBefore).toBe('p_alice');
     expect(m4.crownHolderAfter).toBe('p_bob');
 
     crown4 = await db.readItem('crown_division_4', 'CROWN');
     expect(crown4.currentHolderId).toBe('p_bob');
-    expect(crown4.defensesCount).toBe(1);
+    expect(crown4.defensesCount).toBe(0);
   });
 
   test('should resolve string placements and tie rankings correctly', async () => {
