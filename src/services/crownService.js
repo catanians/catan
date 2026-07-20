@@ -161,8 +161,12 @@ const crownService = {
       if (!winner) {
         // Auto-fix placements by sorting them by victory points descending
         match.placements.sort((a, b) => (b.victoryPoints || 0) - (a.victoryPoints || 0));
+        let currentRank = 1;
         match.placements.forEach((p, idx) => {
-          p.place = idx + 1;
+          if (idx > 0 && (p.victoryPoints || 0) < (match.placements[idx - 1].victoryPoints || 0)) {
+            currentRank = idx + 1;
+          }
+          p.place = currentRank;
         });
         await db.upsertItem(match);
       }

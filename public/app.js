@@ -325,6 +325,18 @@ async function handleMatchSubmit(e) {
     });
   }
 
+  // Sort placements dynamically by victory points descending
+  placements.sort((a, b) => b.victoryPoints - a.victoryPoints);
+
+  // Assign place values with standard competition ranking (ties get same rank, skip ranks after ties)
+  let currentRank = 1;
+  placements.forEach((p, idx) => {
+    if (idx > 0 && p.victoryPoints < placements[idx - 1].victoryPoints) {
+      currentRank = idx + 1;
+    }
+    p.place = currentRank;
+  });
+
   const dateVal = document.getElementById('matchDate').value;
   const playedAt = dateVal ? new Date(dateVal + 'T12:00:00Z').toISOString() : undefined;
 
