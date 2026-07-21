@@ -5,5 +5,10 @@ module.exports = {
   COSMOS_KEY: process.env.COSMOS_KEY || '',
   DATABASE_NAME: process.env.DATABASE_NAME || 'CatanDatabase',
   CONTAINER_NAME: process.env.CONTAINER_NAME || 'CatanContainer',
-  USE_MOCK: process.env.DB_MOCK === 'true' || !process.env.COSMOS_ENDPOINT
+  get USE_MOCK() {
+    return process.env.NODE_ENV === 'test' || process.env.DB_MOCK === 'true' || !process.env.COSMOS_ENDPOINT;
+  },
+  set USE_MOCK(val) {
+    process.env.DB_MOCK = val ? 'true' : 'false';
+  }
 };

@@ -182,7 +182,7 @@ async function renderLeaderboard() {
 
     tbody.innerHTML = '';
     if (!stats || stats.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="11">No matches recorded yet.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="13">No matches recorded yet.</td></tr>';
       return;
     }
 
@@ -200,6 +200,8 @@ async function renderLeaderboard() {
           <td>${player.totalLosses}</td>
           <td>${winRatePct}</td>
           <td>${player.currentStreak} (${player.maxStreak})</td>
+          <td>${player.avgVps}</td>
+          <td>${player.avgMiscPoints}</td>
           <td>${player.avgSettlements}</td>
           <td>${player.avgCities}</td>
           <td>${player.avgMetropolises}</td>
@@ -209,7 +211,7 @@ async function renderLeaderboard() {
       tbody.appendChild(tr);
     });
   } catch (err) {
-    tbody.innerHTML = '<tr><td colspan="11">Error loading leaderboards.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="13">Error loading leaderboards.</td></tr>';
   }
 }
 

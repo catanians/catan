@@ -19,6 +19,8 @@ const statsEngine = {
         currentStreak: 0,
         maxStreak: 0,
         gamesWithStatsCount: 0,
+        totalVps: 0,
+        totalMiscPoints: 0,
         totalMetropolises: 0,
         totalCities: 0,
         totalSettlements: 0,
@@ -41,6 +43,8 @@ const statsEngine = {
             currentStreak: 0,
             maxStreak: 0,
             gamesWithStatsCount: 0,
+            totalVps: 0,
+            totalMiscPoints: 0,
             totalMetropolises: 0,
             totalCities: 0,
             totalSettlements: 0,
@@ -57,10 +61,20 @@ const statsEngine = {
         const hasDetails = p.settlements !== null && p.settlements !== undefined;
         if (hasDetails) {
           pStats.gamesWithStatsCount += 1;
-          pStats.totalMetropolises += typeof p.metropolis === 'boolean' ? (p.metropolis ? 1 : 0) : (parseInt(p.metropolis, 10) || 0);
-          pStats.totalCities += parseInt(p.cities, 10) || 0;
-          pStats.totalSettlements += parseInt(p.settlements, 10) || 0;
-          pStats.totalLongestRoads += p.longestRoad ? 1 : 0;
+          const vp = (p.victoryPoints !== null && p.victoryPoints !== undefined) ? (parseInt(p.victoryPoints, 10) || 0) : 0;
+          const settlements = parseInt(p.settlements, 10) || 0;
+          const cities = parseInt(p.cities, 10) || 0;
+          const metropolises = typeof p.metropolis === 'boolean' ? (p.metropolis ? 1 : 0) : (parseInt(p.metropolis, 10) || 0);
+          const longestRoad = p.longestRoad ? 1 : 0;
+
+          const miscPoints = vp - (settlements + (2 * cities) + (2 * metropolises) + (2 * longestRoad));
+
+          pStats.totalVps += vp;
+          pStats.totalMiscPoints += miscPoints;
+          pStats.totalMetropolises += metropolises;
+          pStats.totalCities += cities;
+          pStats.totalSettlements += settlements;
+          pStats.totalLongestRoads += longestRoad;
         }
 
         if (p.place === 1) {
@@ -81,6 +95,8 @@ const statsEngine = {
       pStats.winRate = totalGames > 0 ? (pStats.totalWins / totalGames) : 0;
       
       const count = pStats.gamesWithStatsCount;
+      pStats.avgVps = count > 0 ? (pStats.totalVps / count).toFixed(1) : '-';
+      pStats.avgMiscPoints = count > 0 ? (pStats.totalMiscPoints / count).toFixed(1) : '-';
       pStats.avgSettlements = count > 0 ? (pStats.totalSettlements / count).toFixed(1) : '-';
       pStats.avgCities = count > 0 ? (pStats.totalCities / count).toFixed(1) : '-';
       pStats.avgMetropolises = count > 0 ? (pStats.totalMetropolises / count).toFixed(1) : '-';
