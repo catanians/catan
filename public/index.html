@@ -24,7 +24,16 @@
     <p>The Catan Almanac of victors, settlements, and reigning champions</p>
   </header>
 
-  <main class="dashboard-grid">
+  <!-- PAGE-LEVEL TAB NAVIGATION -->
+  <nav class="page-tabs" id="pageTabs">
+    <button class="page-tab-btn active" data-page="home">🏰 Home</button>
+    <button class="page-tab-btn" data-page="match-center">⚔️ Match Center</button>
+  </nav>
+
+  <!-- ============================================ -->
+  <!-- TAB 1: HOME PAGE -->
+  <!-- ============================================ -->
+  <main class="dashboard-grid page-content active" id="page-home">
     <!-- DYNAMIC HEX BOARD SECTION -->
     <section class="catan-card board-box">
       <h2 class="section-title">Catan League Board</h2>
@@ -65,6 +74,71 @@
       </div>
     </section>
 
+    <!-- CROWN LINEAGE TIMELINE -->
+    <section class="catan-card lineage-box">
+      <h2 class="section-title">Crown Lineage History</h2>
+      <div id="lineageTimeline" class="timeline">
+        <!-- Dynamic Lineage records -->
+      </div>
+    </section>
+
+    <!-- MEMORIES GALLERY SECTION -->
+    <section class="catan-card board-box gallery-box">
+      <h2 class="section-title">Photos</h2>
+      
+      <!-- Slide Container -->
+      <div class="gallery-slider-wrapper">
+        <button id="galleryPrevBtn" class="gallery-nav-btn" aria-label="Previous Slide">&larr;</button>
+        
+        <div id="gallerySlider" class="gallery-slider">
+          <div class="gallery-slide-placeholder">
+            <p>No photos logged yet. Add the first picture below!</p>
+          </div>
+        </div>
+        
+        <button id="galleryNextBtn" class="gallery-nav-btn" aria-label="Next Slide">&rarr;</button>
+      </div>
+      
+      <!-- Dot Indicators -->
+      <div id="galleryDots" class="gallery-dots"></div>
+
+      <!-- Add Image Form -->
+      <div class="add-gallery-wrapper">
+        <h3 class="subsection-title">Add Photo</h3>
+        <form id="galleryForm" class="gallery-form">
+          <div class="form-row">
+            <div class="form-group file-field">
+              <label>Select Picture (File):</label>
+              <div class="file-input-wrapper">
+                <input type="file" id="galleryFileInput" accept="image/*" required>
+                <span class="file-custom-btn">Choose Image</span>
+                <span id="fileNameLabel" class="file-name-label">No file chosen</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-row inputs-row">
+            <div class="form-group date-field">
+              <label for="galleryDateInput">Picture Date:</label>
+              <input type="date" id="galleryDateInput" required>
+            </div>
+            
+            <div class="form-group desc-field">
+              <label for="galleryDescInput">Caption / Description:</label>
+              <input type="text" id="galleryDescInput" placeholder="A brief description of this memory...">
+            </div>
+          </div>
+
+          <button type="submit" class="retro-btn btn-primary">Add to Photos</button>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============================================ -->
+  <!-- TAB 2: MATCH CENTER PAGE -->
+  <!-- ============================================ -->
+  <main class="dashboard-grid page-content" id="page-match-center">
     <!-- LOG A MATCH SECTION -->
     <section class="catan-card log-box">
       <h2 class="section-title">Log a Match</h2>
@@ -139,19 +213,10 @@
       </div>
     </section>
 
-
-    <!-- CROWN LINEAGE TIMELINE -->
-    <section class="catan-card lineage-box">
-      <h2 class="section-title">Crown Lineage History</h2>
-      <div id="lineageTimeline" class="timeline">
-        <!-- Dynamic Lineage records -->
-      </div>
-    </section>
-
     <!-- MATCH HISTORY SECTION -->
-    <section class="catan-card board-box">
+    <section class="catan-card board-box match-history-box">
       <h2 class="section-title">Match History</h2>
-      <div class="table-container">
+      <div class="table-container match-history-scroll">
         <table class="retro-table">
           <thead>
             <tr>
@@ -165,58 +230,6 @@
             <!-- Dynamic match history logs -->
           </tbody>
         </table>
-      </div>
-    </section>
-
-    <!-- MEMORIES GALLERY SECTION -->
-    <section class="catan-card board-box gallery-box">
-      <h2 class="section-title">Photos</h2>
-      
-      <!-- Slide Container -->
-      <div class="gallery-slider-wrapper">
-        <button id="galleryPrevBtn" class="gallery-nav-btn" aria-label="Previous Slide">&larr;</button>
-        
-        <div id="gallerySlider" class="gallery-slider">
-          <div class="gallery-slide-placeholder">
-            <p>No photos logged yet. Add the first picture below!</p>
-          </div>
-        </div>
-        
-        <button id="galleryNextBtn" class="gallery-nav-btn" aria-label="Next Slide">&rarr;</button>
-      </div>
-      
-      <!-- Dot Indicators -->
-      <div id="galleryDots" class="gallery-dots"></div>
-
-      <!-- Add Image Form -->
-      <div class="add-gallery-wrapper">
-        <h3 class="subsection-title">Add Photo</h3>
-        <form id="galleryForm" class="gallery-form">
-          <div class="form-row">
-            <div class="form-group file-field">
-              <label>Select Picture (File):</label>
-              <div class="file-input-wrapper">
-                <input type="file" id="galleryFileInput" accept="image/*" required>
-                <span class="file-custom-btn">Choose Image</span>
-                <span id="fileNameLabel" class="file-name-label">No file chosen</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="form-row inputs-row">
-            <div class="form-group date-field">
-              <label for="galleryDateInput">Picture Date:</label>
-              <input type="date" id="galleryDateInput" required>
-            </div>
-            
-            <div class="form-group desc-field">
-              <label for="galleryDescInput">Caption / Description:</label>
-              <input type="text" id="galleryDescInput" placeholder="A brief description of this memory...">
-            </div>
-          </div>
-
-          <button type="submit" class="retro-btn btn-primary">Add to Photos</button>
-        </form>
       </div>
     </section>
   </main>

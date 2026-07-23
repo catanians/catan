@@ -53,6 +53,22 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Init Gallery
   initGallery();
+
+  // Page-level tab navigation
+  document.querySelectorAll('.page-tab-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const targetPage = e.target.getAttribute('data-page');
+
+      // Toggle active button
+      document.querySelectorAll('.page-tab-btn').forEach(b => b.classList.remove('active'));
+      e.target.classList.add('active');
+
+      // Toggle active page content
+      document.querySelectorAll('.page-content').forEach(page => page.classList.remove('active'));
+      const targetEl = document.getElementById('page-' + targetPage);
+      if (targetEl) targetEl.classList.add('active');
+    });
+  });
 });
 
 async function fetchPlayers() {
