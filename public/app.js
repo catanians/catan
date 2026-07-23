@@ -642,9 +642,11 @@ document.querySelectorAll('#lineageTabs .tab-btn').forEach(btn => {
 async function renderLineage(division) {
   const container = document.getElementById('lineageContainer');
   const svg = document.getElementById('lineageSvg');
-  // Clear nodes and paths
+  // Clear nodes, paths, and roads
   container.querySelectorAll('.lineage-node').forEach(n => n.remove());
+  container.querySelectorAll('.lineage-road').forEach(r => r.remove());
   svg.querySelectorAll('.lineage-path').forEach(p => p.remove());
+  svg.style.display = 'none'; // Hide SVG entirely — we use road PNGs now
 
   try {
     const res = await fetch(`/api/crowns/timeline/${division}`);
@@ -690,8 +692,10 @@ async function renderLineage(division) {
         const dateStr = new Date(match.playedAt).toLocaleDateString(undefined, {month: 'short', day: 'numeric', year: 'numeric'});
         const hp = match.placements.find(p => p.playerId === match.crownHolderAfter);
         const holderName = hp ? hp.playerName : 'Champ';
+        const pieceImg = isUnification ? 'images/metro.png' : 'images/city.png';
         
         mainNode.innerHTML = `
+          <img src="${pieceImg}" alt="${isUnification ? 'Unification' : 'Champion'}" class="piece-img">
           <div class="node-name">${escapeHtml(holderName)}</div>
           <div class="node-date">${dateStr}</div>
         `;
@@ -726,6 +730,7 @@ async function renderLineage(division) {
         const holderName = ip ? ip.playerName : 'Interim';
         
         interimNode.innerHTML = `
+          <img src="images/settlement.png" alt="Interim" class="piece-img">
           <div class="node-name">${escapeHtml(holderName)}</div>
           <div class="node-date">${dateStr}</div>
         `;
@@ -768,12 +773,15 @@ async function renderLineage(division) {
 }
 
 function drawArrows(connections, nodes, svg) {
+  const container = document.getElementById('lineageContainer');
+  // Remove old roads
+  container.querySelectorAll('.lineage-road').forEach(r => r.remove());
+
   connections.forEach(conn => {
     const fromNode = nodes.find(n => n.id === conn.from);
     const toNode = nodes.find(n => n.id === conn.to);
     
     if (fromNode && toNode) {
-      // Use offsetLeft/offsetTop which are relative to the positioned container
       // Nodes use transform: translate(-50%, -50%) so their center is at (left, top)
       const startX = fromNode.el.offsetLeft;
       const startY = fromNode.el.offsetTop;
@@ -786,29 +794,47 @@ function drawArrows(connections, nodes, svg) {
       
       if (length === 0) return;
 
-      const radius = 42; 
-      
-      const ratio = (length - radius) / length;
-      const targetX = startX + (dx * ratio);
-      const targetY = startY + (dy * ratio);
-      
-      const startRatio = radius / length;
-      const finalStartX = startX + (dx * startRatio);
-      const finalStartY = startY + (dy * startRatio);
+      let angle = Math.atan2(dy, dx) * (180 / Math.PI);
 
-      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-      path.setAttribute('class', 'lineage-path');
+      // Keep the road upright so the shadow is always on the bottom
+      if (angle > 90) {
+        angle -= 180;
+      } else if (angle < -90) {
+        angle += 180;
+      }
+
+      // We want a constant spacing between roads so they don't stretch
+      const fixedSpacing = 75; 
+      // Minimum gap from the center of the nodes to the first/last road
+      const minOffset = 65; 
       
-      // Control points for a beautiful organic curve
-      const tension = 0.5;
-      const cp1X = finalStartX;
-      const cp1Y = finalStartY + Math.abs(dy) * tension;
-      const cp2X = targetX;
-      const cp2Y = targetY - Math.abs(dy) * tension;
-      
-      path.setAttribute('d', `M ${finalStartX},${finalStartY} C ${cp1X},${cp1Y} ${cp2X},${cp2Y} ${targetX},${targetY}`);
-      
-      svg.appendChild(path);
+      let availablePath = length - (minOffset * 2);
+      let roadCount = 1; // Always place at least one road
+      if (availablePath >= 0) {
+         roadCount = Math.floor(availablePath / fixedSpacing) + 1;
+      }
+      roadCount = Math.min(5, roadCount); // Cap at 5
+
+      // Calculate how long the chain of roads is, then center it on the line
+      const chainLength = (roadCount - 1) * fixedSpacing;
+      const startDist = (length - chainLength) / 2;
+
+      for (let i = 0; i < roadCount; i++) {
+        const dist = startDist + (i * fixedSpacing);
+        const ratio = dist / length;
+        
+        const roadX = startX + dx * ratio;
+        const roadY = startY + dy * ratio;
+        
+        const roadEl = document.createElement('div');
+        roadEl.className = 'lineage-road';
+        roadEl.innerHTML = `<img src="images/road.png" alt="road">`;
+        roadEl.style.left = roadX + 'px';
+        roadEl.style.top = roadY + 'px';
+        roadEl.style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
+        
+        container.appendChild(roadEl);
+      }
     }
   });
 }
