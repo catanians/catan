@@ -432,9 +432,15 @@ async function handleMatchSubmit(e) {
   }
 
   try {
+    const token = localStorage.getItem('catan_token');
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
     const res = await fetch('/api/matches', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({ division, placements, playedAt, isSimpleMatch })
     });
 
@@ -1032,6 +1038,21 @@ function renderAuthBar() {
       await populateUnlinkedPlayers();
       document.getElementById('registerModal').classList.add('active');
     });
+  }
+
+  updateMatchFormVisibility();
+}
+
+function updateMatchFormVisibility() {
+  const matchForm = document.getElementById('matchForm');
+  const adminNotice = document.getElementById('adminOnlyNotice');
+  const isAdmin = currentUser && currentUser.user && currentUser.user.isAdmin;
+
+  if (matchForm) {
+    matchForm.style.display = isAdmin ? 'block' : 'none';
+  }
+  if (adminNotice) {
+    adminNotice.style.display = isAdmin ? 'none' : 'block';
   }
 }
 

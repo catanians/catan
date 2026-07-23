@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const matchService = require('../services/matchService');
+const { requireAdmin } = require('../middleware/auth');
 
 router.get('/', async (req, res) => {
   try {
@@ -11,7 +12,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-router.post('/', async (req, res) => {
+router.post('/', requireAdmin, async (req, res) => {
   try {
     const { division, placements, playedAt, isSimpleMatch } = req.body;
     const match = await matchService.createMatch(parseInt(division, 10), placements, playedAt, isSimpleMatch);

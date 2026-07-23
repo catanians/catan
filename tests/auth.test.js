@@ -87,4 +87,33 @@ describe('User Authentication & Customization Service', () => {
       userService.updateTilePreference(user.id, 'invalid_resource')
     ).rejects.toThrow('Invalid tile preference style: invalid_resource');
   });
+
+  test('requireAdmin middleware should enforce admin privileges', async () => {
+    const { requireAdmin } = require('../src/middleware/auth');
+    
+    // Mock response object
+    const res = {
+      status: jest.fn().mockReturnThis(),
+      json: jest.fn()
+    };
+    const next = jest.fn();
+
+    // 1. Without auth header -> 401
+    await requireAdmin({ headers: {} }, res, next);
+    expect(res.status).toHaveBeenCalledWith(401);
+
+    // 2. Non-admin user -> 403
+    const regularUser = await userService.getUserByUsername('charlie_user');
+    const session = await userService.createSession(regularUser.id);
+    const reqNonAdmin = { headers: { authorization: `Bearer ${session.id}` } };
+    await requireAdmin(reqNonAdmin, res, next);
+    expect(res.status).toHaveBeenCalledWith(403);
+
+    // 3. Admin user -> calls next()
+    regularUser.isAdmin = true;
+    await db.upsertItem(regularUser);
+    const reqAdmin = { headers: { authorization: `Bearer ${session.id}` } };
+    await requireAdmin(reqAdmin, res, next);
+    expect(next).toHaveBeenCalled();
+  });
 });
