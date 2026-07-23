@@ -278,9 +278,9 @@ const crownService = {
 
     if (resolved.victoryPoints !== null && resolved.victoryPoints !== undefined) {
       let vp = parseInt(resolved.victoryPoints, 10);
-      resolved.victoryPoints = isNaN(vp) ? ((idx === 0 || resolved.place === 1) ? 10 : null) : vp;
+      resolved.victoryPoints = isNaN(vp) ? ((idx === 0 || resolved.place === 1) ? 13 : null) : vp;
     } else {
-      resolved.victoryPoints = (idx === 0 || resolved.place === 1) ? 10 : null;
+      resolved.victoryPoints = (idx === 0 || resolved.place === 1) ? 13 : null;
     }
 
     resolved.settlements = resolved.settlements !== undefined ? resolved.settlements : null;
