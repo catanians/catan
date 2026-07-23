@@ -25,6 +25,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   await fetchPlayers();
   setupDivisionSelect();
   await updateDashboard();
+  renderLineage('4'); // Initialize with 4-player division
 
   // Default date to today
   const dateInput = document.getElementById('matchDate');
@@ -1153,3 +1154,211 @@ async function populateUnlinkedPlayers() {
   }
 }
 
+// --- LINEAGE VISUALIZER ---
+document.querySelectorAll('#lineageTabs .tab-btn').forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    document.querySelectorAll('#lineageTabs .tab-btn').forEach(b => b.classList.remove('active'));
+    e.target.classList.add('active');
+    renderLineage(e.target.dataset.div);
+  });
+});
+
+async function renderLineage(division) {
+  const container = document.getElementById('lineageContainer');
+  const svg = document.getElementById('lineageSvg');
+  // Clear nodes, paths, and roads
+  container.querySelectorAll('.lineage-node').forEach(n => n.remove());
+  container.querySelectorAll('.lineage-road').forEach(r => r.remove());
+  svg.querySelectorAll('.lineage-path').forEach(p => p.remove());
+  svg.style.display = 'none'; // Hide SVG entirely — we use road PNGs now
+
+  try {
+    const res = await fetch(`/api/crowns/timeline/${division}`);
+    const data = await res.json();
+    const timeline = data.timeline || [];
+
+    if (timeline.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'lineage-node node-main';
+      empty.style.top = '100px';
+      empty.style.left = '50%';
+      empty.innerHTML = `<div class="node-name">No Matches</div>`;
+      container.appendChild(empty);
+      container.style.height = '300px';
+      return;
+    }
+
+    let currentY = 60;
+    const yStep = 90;
+    const leftMainX = '25%';
+    const centerMainX = '50%';
+    const rightMainX = '75%';
+    const interimX = '85%'; 
+    const mainWithInterimX = '15%'; 
+
+    const nodes = [];
+    const connections = [];
+
+    let lastMainNode = null;
+    let lastInterimNode = null;
+    let snakePos = 0; 
+    
+    timeline.forEach((match) => {
+      const hasInterimState = match.interimUpdated || match.interimHolderAfter;
+      const isUnification = match.interimHolderBefore && !match.interimHolderAfter && match.crownChallenged;
+
+      let mainNode = null;
+      if (match.crownChallenged || match.crownDefended || isUnification) {
+        mainNode = document.createElement('div');
+        mainNode.className = 'lineage-node ' + (isUnification ? 'node-unification' : 'node-main');
+        mainNode.dataset.id = 'main_' + match.id;
+        
+        const dateStr = new Date(match.playedAt).toLocaleDateString(undefined, {month: 'short', day: 'numeric', year: 'numeric'});
+        const hp = match.placements.find(p => p.playerId === match.crownHolderAfter);
+        const holderName = hp ? hp.playerName : 'Champ';
+        const pieceImg = isUnification ? 'images/metro.png' : 'images/city.png';
+        
+        mainNode.innerHTML = `
+          <img src="${pieceImg}" alt="${isUnification ? 'Unification' : 'Champion'}" class="piece-img">
+          <div class="node-name">${escapeHtml(holderName)}</div>
+          <div class="node-date">${dateStr}</div>
+        `;
+        
+        mainNode.style.top = currentY + 'px';
+        if (hasInterimState && !isUnification) {
+          mainNode.style.left = mainWithInterimX;
+        } else {
+          if (snakePos === 0 || snakePos === 2) mainNode.style.left = centerMainX;
+          else if (snakePos === 1) mainNode.style.left = rightMainX;
+          else if (snakePos === 3) mainNode.style.left = leftMainX;
+          snakePos = (snakePos + 1) % 4;
+        }
+        
+        container.appendChild(mainNode);
+        nodes.push({ id: mainNode.dataset.id, el: mainNode });
+        
+        if (lastMainNode) {
+          connections.push({ from: lastMainNode.dataset.id, to: mainNode.dataset.id });
+        }
+        lastMainNode = mainNode;
+      }
+
+      let interimNode = null;
+      if (match.interimUpdated && match.interimHolderAfter) {
+        interimNode = document.createElement('div');
+        interimNode.className = 'lineage-node node-interim';
+        interimNode.dataset.id = 'interim_' + match.id;
+        
+        const dateStr = new Date(match.playedAt).toLocaleDateString(undefined, {month: 'short', day: 'numeric', year: 'numeric'});
+        const ip = match.placements.find(p => p.playerId === match.interimHolderAfter);
+        const holderName = ip ? ip.playerName : 'Interim';
+        
+        interimNode.innerHTML = `
+          <img src="images/settlement.png" alt="Interim" class="piece-img">
+          <div class="node-name">${escapeHtml(holderName)}</div>
+          <div class="node-date">${dateStr}</div>
+        `;
+        
+        interimNode.style.top = currentY + 'px';
+        interimNode.style.left = interimX;
+        
+        container.appendChild(interimNode);
+        nodes.push({ id: interimNode.dataset.id, el: interimNode });
+
+        if (lastInterimNode) {
+          connections.push({ from: lastInterimNode.dataset.id, to: interimNode.dataset.id });
+        } else if (lastMainNode && lastMainNode !== mainNode) {
+          connections.push({ from: lastMainNode.dataset.id, to: interimNode.dataset.id });
+        } else if (mainNode) {
+           connections.push({ from: mainNode.dataset.id, to: interimNode.dataset.id });
+        }
+        lastInterimNode = interimNode;
+      }
+      
+      if (isUnification && lastInterimNode && mainNode) {
+         connections.push({ from: lastInterimNode.dataset.id, to: mainNode.dataset.id });
+         lastInterimNode = null;
+      }
+
+      currentY += yStep;
+    });
+    // Size the SVG to match the full scrollable content
+    const contentHeight = currentY + 50;
+    container.style.height = contentHeight + 'px';
+    svg.setAttribute('width', container.scrollWidth);
+    svg.setAttribute('height', contentHeight);
+    svg.style.height = contentHeight + 'px';
+
+    setTimeout(() => drawArrows(connections, nodes, svg), 100);
+
+  } catch (err) {
+    console.error('Failed to load lineage', err);
+  }
+}
+
+function drawArrows(connections, nodes, svg) {
+  const container = document.getElementById('lineageContainer');
+  // Remove old roads
+  container.querySelectorAll('.lineage-road').forEach(r => r.remove());
+
+  connections.forEach(conn => {
+    const fromNode = nodes.find(n => n.id === conn.from);
+    const toNode = nodes.find(n => n.id === conn.to);
+    
+    if (fromNode && toNode) {
+      // Nodes use transform: translate(-50%, -50%) so their center is at (left, top)
+      const startX = fromNode.el.offsetLeft;
+      const startY = fromNode.el.offsetTop;
+      const endX = toNode.el.offsetLeft;
+      const endY = toNode.el.offsetTop;
+      
+      const dx = endX - startX;
+      const dy = endY - startY;
+      const length = Math.sqrt(dx*dx + dy*dy);
+      
+      if (length === 0) return;
+
+      let angle = Math.atan2(dy, dx) * (180 / Math.PI);
+
+      // Keep the road upright so the shadow is always on the bottom
+      if (angle > 90) {
+        angle -= 180;
+      } else if (angle < -90) {
+        angle += 180;
+      }
+
+      // We want a constant spacing between roads so they don't stretch
+      const fixedSpacing = 75; 
+      // Minimum gap from the center of the nodes to the first/last road
+      const minOffset = 65; 
+      
+      let availablePath = length - (minOffset * 2);
+      let roadCount = 1; // Always place at least one road
+      if (availablePath >= 0) {
+         roadCount = Math.floor(availablePath / fixedSpacing) + 1;
+      }
+      roadCount = Math.min(5, roadCount); // Cap at 5
+
+      // Calculate how long the chain of roads is, then center it on the line
+      const chainLength = (roadCount - 1) * fixedSpacing;
+      const startDist = (length - chainLength) / 2;
+
+      for (let i = 0; i < roadCount; i++) {
+        const dist = startDist + (i * fixedSpacing);
+        const ratio = dist / length;
+        
+        const roadX = startX + dx * ratio;
+        const roadY = startY + dy * ratio;
+        
+        const roadEl = document.createElement('div');
+        roadEl.className = 'lineage-road';
+        roadEl.innerHTML = `<img src="images/road.png" alt="road">`;
+        roadEl.style.left = roadX + 'px';
+        roadEl.style.top = roadY + 'px';
+        roadEl.style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
+        
+        container.appendChild(roadEl);
+      }
+    }
+  });
+}
