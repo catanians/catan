@@ -116,7 +116,7 @@ function setupDivisionSelect() {
       row.style.gridTemplateColumns = "1fr 2fr";
       const roleLabel = document.createElement('div');
       roleLabel.className = 'rank-label';
-      roleLabel.innerText = i === 1 ? '👑 Winner' : 'Participant';
+      roleLabel.innerText = i === 1 ? 'Winner' : 'Participant';
       row.appendChild(roleLabel);
     } else {
       row.style.gridTemplateColumns = "";
@@ -259,10 +259,9 @@ async function renderCrownsAndLineage() {
         badge.innerHTML = `
           <img src="images/scroll.webp" alt="Scroll" class="scroll-img">
           <div class="scroll-content">
-            <span class="crown-icon">👑</span>
             <h3>${div}-Player Victor</h3>
             <div class="holder-name">${escapeHtml(crown.currentHolderName)}</div>
-            <div class="defenses-info">⚔️ ${crown.defensesCount} Defense${crown.defensesCount !== 1 ? 's' : ''}</div>
+            <div class="defenses-info">${crown.defensesCount} Defense${crown.defensesCount !== 1 ? 's' : ''}</div>
           </div>
         `;
         crownsContainer.appendChild(badge);
@@ -273,10 +272,9 @@ async function renderCrownsAndLineage() {
           interimBadge.innerHTML = `
             <img src="images/scroll.webp" alt="Scroll" class="scroll-img">
             <div class="scroll-content">
-              <span class="crown-icon">⚔️</span>
               <h3>${div}-Player Victor INTERIM</h3>
               <div class="holder-name interim-text">${escapeHtml(crown.interimHolderName)}</div>
-              <div class="defenses-info">🏆 ${crown.interimConsecutiveWins} Consecutive Win${crown.interimConsecutiveWins !== 1 ? 's' : ''}</div>
+              <div class="defenses-info">${crown.interimConsecutiveWins} Consecutive Win${crown.interimConsecutiveWins !== 1 ? 's' : ''}</div>
             </div>
           `;
           crownsContainer.appendChild(interimBadge);
@@ -285,7 +283,6 @@ async function renderCrownsAndLineage() {
         badge.innerHTML = `
           <img src="images/scroll.webp" alt="Scroll" class="scroll-img">
           <div class="scroll-content">
-            <span class="crown-icon">🏰</span>
             <h3>${div}-Player Victor</h3>
             <div class="holder-name vacant-text">Vacant</div>
             <div class="defenses-info">No champion crowned yet</div>
@@ -1001,12 +998,12 @@ function renderAuthBar() {
       <div class="profile-settings">
         <label for="tilePrefSelect">Hex Skin:</label>
         <select id="tilePrefSelect" class="tile-pref-select">
-          <option value="wheat" ${user.tilePreference === 'wheat' ? 'selected' : ''}>🌾 Wheat</option>
-          <option value="clay" ${user.tilePreference === 'clay' ? 'selected' : ''}>🧱 Clay</option>
-          <option value="forest" ${user.tilePreference === 'forest' ? 'selected' : ''}>🌲 Forest</option>
-          <option value="ore" ${user.tilePreference === 'ore' ? 'selected' : ''}>⛰️ Ore</option>
-          <option value="pasture" ${user.tilePreference === 'pasture' ? 'selected' : ''}>🐑 Pasture</option>
-          <option value="desert" ${user.tilePreference === 'desert' ? 'selected' : ''}>⏳ Desert</option>
+          <option value="wheat" ${user.tilePreference === 'wheat' ? 'selected' : ''}>Wheat</option>
+          <option value="clay" ${user.tilePreference === 'clay' ? 'selected' : ''}>Clay</option>
+          <option value="forest" ${user.tilePreference === 'forest' ? 'selected' : ''}>Forest</option>
+          <option value="ore" ${user.tilePreference === 'ore' ? 'selected' : ''}>Ore</option>
+          <option value="pasture" ${user.tilePreference === 'pasture' ? 'selected' : ''}>Pasture</option>
+          <option value="desert" ${user.tilePreference === 'desert' ? 'selected' : ''}>Desert</option>
         </select>
       </div>
       <button class="auth-btn btn-logout" id="logoutBtn">Logout</button>
