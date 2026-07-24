@@ -336,7 +336,7 @@ body {
   color: #2b180a;
   text-shadow: 0 1px 1px rgba(255, 255, 255, 0.7);
   margin-top: auto;
-  margin-bottom: 2px;
+  margin-bottom: 14px;
   font-style: normal;
   letter-spacing: 0.5px;
 }
@@ -481,9 +481,9 @@ input[type="date"]:focus {
 }
 
 #lineageTabs .tab-btn {
-  background-color: transparent;
-  border: 3px solid var(--color-border);
-  color: var(--color-ink);
+  background-color: #233C8A;
+  border: 3px solid #1a2c66;
+  color: var(--color-wheat);
   width: 180px;
   min-width: 180px;
   font-weight: normal;
@@ -493,16 +493,21 @@ input[type="date"]:focus {
 }
 
 #lineageTabs .tab-btn:hover {
-  background-color: rgba(122, 26, 26, 0.08);
-  border-color: var(--color-border);
-  color: var(--color-ink);
+  background-color: #2e4a9e;
+  border-color: #233C8A;
+  color: var(--color-wheat);
 }
 
 #lineageTabs .tab-btn.active {
-  background-color: var(--color-border);
-  border-color: var(--color-border);
+  background-color: #233C8A;
+  border-color: #1a2c66;
   color: #ffffff;
   font-weight: bold;
+}
+
+#lineageTabs .tab-btn.active:hover {
+  background-color: #2e4a9e;
+  color: #ffffff;
 }
 
 .table-container {
