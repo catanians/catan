@@ -802,22 +802,23 @@ input[type="date"]:focus {
 
 .gallery-slide img {
   width: 100%;
-  flex-grow: 1;
+  flex: 1 1 auto;
   min-height: 0;
+  max-height: calc(100% - 110px);
   object-fit: contain;
   background-color: transparent;
 }
 
 .gallery-slide-caption {
-  min-height: 70px;
+  flex-shrink: 0;
   height: auto;
   background-color: transparent;
   border-top: none;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-end;
   align-items: center;
-  padding: 20px 15px 10px 15px;
+  padding: 8px 15px 12px 15px;
   box-sizing: border-box;
   position: relative;
   z-index: 10;
@@ -883,7 +884,7 @@ input[type="date"]:focus {
   display: flex;
   justify-content: center;
   gap: 8px;
-  margin: 70px 0 25px 0;
+  margin: 20px 0 25px 0;
 }
 
 .gallery-dot {
@@ -968,7 +969,7 @@ input[type="date"]:focus {
   }
 
   .gallery-slider {
-    height: 280px;
+    height: 340px;
   }
 }
 
