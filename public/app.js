@@ -1467,125 +1467,216 @@ async function renderLineage(division) {
     const res = await fetch(`/api/crowns/timeline/${division}`);
     const data = await res.json();
     const timeline = data.timeline || [];
-    timeline.reverse();
+
+    // Chronological order: oldest left -> newest right
+    timeline.sort((a, b) => new Date(a.playedAt) - new Date(b.playedAt));
 
     if (timeline.length === 0) {
       const empty = document.createElement('div');
       empty.className = 'lineage-node node-main';
-      empty.style.top = '100px';
+      empty.style.top = '140px';
       empty.style.left = '50%';
       empty.innerHTML = `<div class="node-name">No Matches</div>`;
       container.appendChild(empty);
-      container.style.height = '300px';
+      container.style.width = '100%';
       return;
     }
 
-    let currentY = 60;
-    const yStep = 90;
-    const leftMainX = '25%';
-    const centerMainX = '50%';
-    const rightMainX = '75%';
-    const interimX = '85%';
-    const mainWithInterimX = '15%';
+    const mainY = 175;     // Baseline Y for Winner & Unification cities/metros
+    const mainXStep = 180; // STRICT CONSTANT X-step between main champion nodes!
 
     const nodes = [];
     const connections = [];
 
-    let lastMainNode = null;
-    let lastInterimNode = null;
-    let snakePos = 0;
+    // 1. Separate main champion matches vs interim-only matches
+    const mainMatches = [];
+    const interimMatchMap = new Map();
 
-    timeline.forEach((match) => {
-      const hasInterimState = match.interimUpdated || match.interimHolderAfter;
+    let currentMainIdx = 0;
+    timeline.forEach(match => {
       const isUnification = match.interimHolderBefore && !match.interimHolderAfter && match.crownChallenged;
+      const isMain = match.crownChallenged || match.crownDefended || isUnification;
+      const isInterim = match.interimUpdated && match.interimHolderAfter;
 
-      let mainNode = null;
-      if (match.crownChallenged || match.crownDefended || isUnification) {
-        mainNode = document.createElement('div');
-        mainNode.className = 'lineage-node ' + (isUnification ? 'node-unification' : 'node-main');
-        mainNode.dataset.id = 'main_' + match.id;
-
-        const dateStr = new Date(match.playedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
-        const hp = match.placements.find(p => p.playerId === match.crownHolderAfter);
-        const holderName = hp ? hp.playerName : 'Champ';
-        const pieceImg = isUnification ? 'images/metro.png' : 'images/city.png';
-
-        mainNode.innerHTML = `
-          <img src="${pieceImg}" alt="${isUnification ? 'Unification' : 'Champion'}" class="piece-img">
-          <div class="node-name">${escapeHtml(holderName)}</div>
-          <div class="node-date">${dateStr}</div>
-        `;
-
-        mainNode.style.top = currentY + 'px';
-        if (hasInterimState && !isUnification) {
-          mainNode.style.left = mainWithInterimX;
-        } else {
-          if (snakePos === 0 || snakePos === 2) mainNode.style.left = centerMainX;
-          else if (snakePos === 1) mainNode.style.left = rightMainX;
-          else if (snakePos === 3) mainNode.style.left = leftMainX;
-          snakePos = (snakePos + 1) % 4;
+      if (isMain) {
+        mainMatches.push({ match, mainIdx: currentMainIdx });
+        currentMainIdx++;
+      } else if (isInterim) {
+        const key = currentMainIdx - 1 >= 0 ? currentMainIdx - 1 : 0;
+        if (!interimMatchMap.has(key)) {
+          interimMatchMap.set(key, []);
         }
+        interimMatchMap.get(key).push(match);
+      }
+    });
 
+    let maxContentX = 200;
+
+    if (mainMatches.length === 0) {
+      // Only interim matches exist
+      let currentX = 80;
+      let lastNode = null;
+      timeline.forEach(match => {
+        const interimNode = createLineageNode(match, 'interim', currentX, 60);
+        container.appendChild(interimNode);
+        nodes.push({ id: interimNode.dataset.id, el: interimNode });
+        if (lastNode) {
+          connections.push({ from: lastNode.dataset.id, to: interimNode.dataset.id });
+        }
+        lastNode = interimNode;
+        currentX += 140;
+      });
+      maxContentX = currentX;
+    } else {
+      // 2. Render Main Matches at STRICT constant mainXStep spacing!
+      let lastMainNodeObj = null;
+
+      for (let k = 0; k < mainMatches.length; k++) {
+        const { match, mainIdx } = mainMatches[k];
+        const isUnification = match.interimHolderBefore && !match.interimHolderAfter && match.crownChallenged;
+        const mainX = 80 + mainIdx * mainXStep;
+
+        const mainNode = createLineageNode(match, isUnification ? 'unification' : 'main', mainX, mainY);
         container.appendChild(mainNode);
         nodes.push({ id: mainNode.dataset.id, el: mainNode });
 
-        if (lastMainNode) {
-          connections.push({ from: lastMainNode.dataset.id, to: mainNode.dataset.id });
+        if (lastMainNodeObj) {
+          connections.push({ from: lastMainNodeObj.el.dataset.id, to: mainNode.dataset.id });
         }
-        lastMainNode = mainNode;
-      }
 
-      let interimNode = null;
-      if (match.interimUpdated && match.interimHolderAfter) {
-        interimNode = document.createElement('div');
-        interimNode.className = 'lineage-node node-interim';
-        interimNode.dataset.id = 'interim_' + match.id;
+        // Check for interim matches that occurred after lastMainNodeObj before this mainNode
+        const prevInterims = interimMatchMap.get(k - 1) || [];
+        if (prevInterims.length > 0 && lastMainNodeObj) {
+          const M = prevInterims.length;
+          const startX = lastMainNodeObj.x;
+          const endX = mainX;
+          let lastBranchNodeId = lastMainNodeObj.el.dataset.id;
 
-        const dateStr = new Date(match.playedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
-        const ip = match.placements.find(p => p.playerId === match.interimHolderAfter);
-        const holderName = ip ? ip.playerName : 'Interim';
+          prevInterims.forEach((intMatch, i) => {
+            const coords = getInterimShapeCoords(M, i, startX, endX, mainY);
+            const intNode = createLineageNode(intMatch, 'interim', coords.x, coords.y);
+            container.appendChild(intNode);
+            nodes.push({ id: intNode.dataset.id, el: intNode });
 
-        interimNode.innerHTML = `
-          <img src="images/settlement.png" alt="Interim" class="piece-img">
-          <div class="node-name">${escapeHtml(holderName)}</div>
-          <div class="node-date">${dateStr}</div>
-        `;
+            connections.push({ from: lastBranchNodeId, to: intNode.dataset.id });
+            lastBranchNodeId = intNode.dataset.id;
+          });
 
-        interimNode.style.top = currentY + 'px';
-        interimNode.style.left = interimX;
-
-        container.appendChild(interimNode);
-        nodes.push({ id: interimNode.dataset.id, el: interimNode });
-
-        if (lastInterimNode) {
-          connections.push({ from: lastInterimNode.dataset.id, to: interimNode.dataset.id });
-        } else if (lastMainNode && lastMainNode !== mainNode) {
-          connections.push({ from: lastMainNode.dataset.id, to: interimNode.dataset.id });
-        } else if (mainNode) {
-          connections.push({ from: mainNode.dataset.id, to: interimNode.dataset.id });
+          // Loop back from last interim to the current main node (unification or main fight)
+          connections.push({ from: lastBranchNodeId, to: mainNode.dataset.id });
         }
-        lastInterimNode = interimNode;
+
+        lastMainNodeObj = { el: mainNode, x: mainX, match };
+        maxContentX = mainX;
       }
 
-      if (isUnification && lastInterimNode && mainNode) {
-        connections.push({ from: lastInterimNode.dataset.id, to: mainNode.dataset.id });
-        lastInterimNode = null;
-      }
+      // Check for trailing interim matches after the latest main match
+      const trailingInterims = interimMatchMap.get(mainMatches.length - 1) || [];
+      if (trailingInterims.length > 0 && lastMainNodeObj) {
+        let lastBranchNodeId = lastMainNodeObj.el.dataset.id;
+        let intX = lastMainNodeObj.x + 140;
 
-      currentY += yStep;
-    });
-    // Size the SVG to match the full scrollable content
-    const contentHeight = currentY + 50;
-    container.style.height = contentHeight + 'px';
-    svg.setAttribute('width', container.scrollWidth);
-    svg.setAttribute('height', contentHeight);
-    svg.style.height = contentHeight + 'px';
+        trailingInterims.forEach(intMatch => {
+          const intNode = createLineageNode(intMatch, 'interim', intX, 60);
+          container.appendChild(intNode);
+          nodes.push({ id: intNode.dataset.id, el: intNode });
+
+          connections.push({ from: lastBranchNodeId, to: intNode.dataset.id });
+          lastBranchNodeId = intNode.dataset.id;
+          intX += 140;
+        });
+        maxContentX = intX;
+      }
+    }
+
+    // Size container to accommodate full horizontal width
+    const contentWidth = Math.max(container.parentElement.clientWidth || 800, maxContentX + 100);
+    container.style.width = contentWidth + 'px';
+    container.style.height = '300px';
 
     setTimeout(() => drawArrows(connections, nodes, svg), 100);
 
   } catch (err) {
     console.error('Failed to load lineage', err);
   }
+}
+
+function getInterimShapeCoords(M, i, startX, endX, mainY) {
+  if (M === 1) {
+    // 1 Interim -> Triangle (3-gon with main line base, legs ~166px)
+    return {
+      x: (startX + endX) / 2,
+      y: mainY - 140
+    };
+  } else if (M === 2) {
+    // 2 Interims -> Square / Rectangle arch (4-gon with main line base)
+    return {
+      x: i === 0 ? startX : endX,
+      y: mainY - 140
+    };
+  } else if (M === 3) {
+    // 3 Interims -> Pentagon arch (5-gon with main line base)
+    if (i === 0) return { x: startX, y: mainY - 90 };
+    if (i === 1) return { x: (startX + endX) / 2, y: mainY - 145 };
+    return { x: endX, y: mainY - 90 };
+  } else if (M === 4) {
+    // 4 Interims -> Hexagon arch (6-gon with main line base)
+    if (i === 0) return { x: startX, y: mainY - 65 };
+    if (i === 1) return { x: startX + 0.28 * (endX - startX), y: mainY - 130 };
+    if (i === 2) return { x: startX + 0.72 * (endX - startX), y: mainY - 130 };
+    return { x: endX, y: mainY - 65 };
+  } else {
+    // M >= 5 -> Arch semi-circle formula
+    const theta = ((i + 1) / (M + 1)) * Math.PI;
+    const cx = (startX + endX) / 2;
+    const radiusX = (endX - startX) / 2;
+    const radiusY = 135;
+    return {
+      x: cx - radiusX * Math.cos(theta),
+      y: mainY - radiusY * Math.sin(theta)
+    };
+  }
+}
+
+function createLineageNode(match, type, x, y) {
+  const node = document.createElement('div');
+  const dateStr = new Date(match.playedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+
+  if (type === 'unification') {
+    node.className = 'lineage-node node-unification';
+    node.dataset.id = 'main_' + match.id;
+    const hp = match.placements.find(p => p.playerId === match.crownHolderAfter);
+    const holderName = hp ? hp.playerName : 'Champ';
+    node.innerHTML = `
+      <img src="images/metro.png" alt="Unification" class="piece-img">
+      <div class="node-name">${escapeHtml(holderName)}</div>
+      <div class="node-date">${dateStr}</div>
+    `;
+  } else if (type === 'main') {
+    node.className = 'lineage-node node-main';
+    node.dataset.id = 'main_' + match.id;
+    const hp = match.placements.find(p => p.playerId === match.crownHolderAfter);
+    const holderName = hp ? hp.playerName : 'Champ';
+    node.innerHTML = `
+      <img src="images/city.png" alt="Champion" class="piece-img">
+      <div class="node-name">${escapeHtml(holderName)}</div>
+      <div class="node-date">${dateStr}</div>
+    `;
+  } else {
+    node.className = 'lineage-node node-interim';
+    node.dataset.id = 'interim_' + match.id;
+    const ip = match.placements.find(p => p.playerId === match.interimHolderAfter);
+    const holderName = ip ? ip.playerName : 'Interim';
+    node.innerHTML = `
+      <img src="images/settlement.png" alt="Interim" class="piece-img">
+      <div class="node-name">${escapeHtml(holderName)}</div>
+      <div class="node-date">${dateStr}</div>
+    `;
+  }
+
+  node.style.top = y + 'px';
+  node.style.left = x + 'px';
+  return node;
 }
 
 function drawArrows(connections, nodes, svg) {
@@ -1619,24 +1710,15 @@ function drawArrows(connections, nodes, svg) {
         angle += 180;
       }
 
-      // We want a constant spacing between roads so they don't stretch
-      const fixedSpacing = 75;
-      // Minimum gap from the center of the nodes to the first/last road
-      const minOffset = 65;
-
-      let availablePath = length - (minOffset * 2);
-      let roadCount = 1; // Always place at least one road
-      if (availablePath >= 0) {
-        roadCount = Math.floor(availablePath / fixedSpacing) + 1;
-      }
-      roadCount = Math.min(5, roadCount); // Cap at 5
-
-      // Calculate how long the chain of roads is, then center it on the line
-      const chainLength = (roadCount - 1) * fixedSpacing;
-      const startDist = (length - chainLength) / 2;
+      // Always place exactly 2 roads with a fixed offset from the nodes (48px)
+      // so road-to-node spacing is 100% consistent across every connection!
+      const roadCount = 2;
+      const nodeOffset = Math.min(48, length * 0.35);
+      const startDist = nodeOffset;
+      const spacingBetweenRoads = length - (2 * nodeOffset);
 
       for (let i = 0; i < roadCount; i++) {
-        const dist = startDist + (i * fixedSpacing);
+        const dist = startDist + (i * spacingBetweenRoads);
         const ratio = dist / length;
 
         const roadX = startX + dx * ratio;
