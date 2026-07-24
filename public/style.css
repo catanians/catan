@@ -94,10 +94,7 @@ body {
   box-shadow: none;
 }
 
-.board-box .section-title {
-  color: #dfd7c2;
-  border-bottom-color: #dfd7c2;
-}
+
 
 .stats-box {
   grid-column: 1 / -1;
@@ -118,36 +115,37 @@ body {
   gap: 0;
   max-width: 1200px;
   width: 95%;
-  margin-bottom: 30px;
+  margin-bottom: 0; /* Changed from 30px to 0, margin is handled by main-container-box */
+  position: relative;
+  z-index: 2; /* Keep above main container box */
 }
 
 .page-tab-btn {
   flex: 1;
   max-width: 300px;
-  background-color: #233c8a;
+  background-color: #233e8a;
   border: none;
   padding: 14px 24px;
   cursor: pointer;
   font-family: var(--font-header);
   font-size: 1.2rem;
   font-weight: bold;
-  color: #fef27e;
+  color: #f7c543;
+  text-transform: uppercase;
   transition: background-color 0.25s, color 0.25s, transform 0.1s;
   position: relative;
   letter-spacing: 0.5px;
 }
 
-
-
 .page-tab-btn:hover {
-  background-color: #f0e6c8;
+  background-color: #233e8a;
+  color: #f7c543;
 }
 
 .page-tab-btn.active {
-  background-color: var(--color-wheat);
-  color: var(--color-ink);
-  border-bottom-color: var(--color-wheat);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  background-color: #233e8a;
+  color: #f7c543;
+  text-shadow: 0 0 10px #87cefa; /* Light blue glow around text */
 }
 
 .page-tab-btn:active {
@@ -155,8 +153,25 @@ body {
 }
 
 /* === PAGE CONTENT VISIBILITY === */
+.main-container-box {
+  background-color: #f7c543;
+  width: 98%;
+  max-width: 1300px;
+  margin: -25px auto 40px auto; /* Negative margin pulls it up to cover bottom half of tabs */
+  padding: 50px 30px 30px 30px;
+  border-radius: 4px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 1; /* Sits below the page tabs */
+}
+
 .page-content {
   display: none;
+  width: 100%;
 }
 
 .page-content.active {
