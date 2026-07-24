@@ -1,5 +1,6 @@
 const db = require('../src/db');
 const matchService = require('../src/services/matchService');
+const crownService = require('../src/services/crownService');
 const path = require('path');
 const fs = require('fs');
 
@@ -128,5 +129,15 @@ describe('Crown and Match Service', () => {
     expect(bob.place).toBe(2);
     expect(charlie.place).toBe(2);
     expect(david.place).toBe(4);
+  });
+
+  test('should set custom crown photo and preserve it during rebuild', async () => {
+    await crownService.updateCrownPhoto(4, '/images/gallery/test-photo.jpg');
+    let crown4 = await db.readItem('crown_division_4', 'CROWN');
+    expect(crown4.customPhotoUrl).toBe('/images/gallery/test-photo.jpg');
+
+    await crownService.rebuildCrownTimeline();
+    crown4 = await db.readItem('crown_division_4', 'CROWN');
+    expect(crown4.customPhotoUrl).toBe('/images/gallery/test-photo.jpg');
   });
 });

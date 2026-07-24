@@ -10,6 +10,7 @@ const galleryRoutes = require('./routes/galleryRoutes');
 const authRoutes = require('./routes/authRoutes');
 const crownService = require('./services/crownService');
 const galleryService = require('./services/galleryService');
+const { requireAdmin } = require('./middleware/auth');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -64,6 +65,21 @@ app.post('/api/crowns/rebuild', async (req, res) => {
     await crownService.rebuildCrownTimeline();
     const crowns = await crownService.getCurrentCrowns();
     res.json({ message: 'Crown timeline rebuilt successfully', crowns });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Update division champion photo (Admin only)
+app.put('/api/crowns/:division/photo', requireAdmin, async (req, res) => {
+  try {
+    const division = parseInt(req.params.division, 10);
+    if (![4, 5, 6].includes(division)) {
+      return res.status(400).json({ error: 'Invalid division. Must be 4, 5, or 6.' });
+    }
+    const { customPhotoUrl } = req.body;
+    const crownState = await crownService.updateCrownPhoto(division, customPhotoUrl);
+    res.json({ message: 'Division champion photo updated successfully', crown: crownState });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

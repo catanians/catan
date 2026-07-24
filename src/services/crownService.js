@@ -255,6 +255,37 @@ const crownService = {
       query: "SELECT * FROM c WHERE c.partitionKey = 'CROWN'"
     });
   },
+
+  async updateCrownPhoto(division, customPhotoUrl) {
+    const divNum = parseInt(division, 10);
+    const crownStateId = `crown_division_${divNum}`;
+    let crownState = await db.readItem(crownStateId, 'CROWN');
+    if (!crownState) {
+      crownState = {
+        id: crownStateId,
+        partitionKey: 'CROWN',
+        type: 'crown_state',
+        division: divNum,
+        currentHolderId: null,
+        currentHolderName: 'Vacant',
+        acquiredMatchId: null,
+        acquiredAt: null,
+        defensesCount: 0,
+        interimHolderId: null,
+        interimHolderName: null,
+        interimAcquiredAt: null,
+        interimConsecutiveWins: 0
+      };
+    }
+    if (customPhotoUrl && customPhotoUrl.trim() !== '') {
+      crownState.customPhotoUrl = customPhotoUrl.trim();
+    } else {
+      delete crownState.customPhotoUrl;
+    }
+    await db.upsertItem(crownState);
+    return crownState;
+  },
+
   async resolvePlacement(p, idx, players, division) {
     const resolved = typeof p === 'string' ? { playerName: p.trim() } : { ...p };
     
@@ -292,9 +323,13 @@ const crownService = {
   },
 
   async rebuildCrownTimeline() {
-    // 1. Delete all current crown state records and reigns
+    // 1. Delete all current crown state records and reigns, preserving custom photos
     const crowns = await this.getCurrentCrowns();
+    const customPhotos = {};
     for (const c of crowns) {
+      if (c.customPhotoUrl) {
+        customPhotos[c.division] = c.customPhotoUrl;
+      }
       await db.deleteItem(c.id, 'CROWN');
     }
     const reigns = await this.getReigns();
@@ -361,6 +396,12 @@ const crownService = {
       match.interimPromotion = crownResult ? !!crownResult.interimPromotion : false;
       
       await db.upsertItem(match);
+    }
+
+    // Restore custom photos if present
+    for (const divKey of Object.keys(customPhotos)) {
+      const divNum = parseInt(divKey, 10);
+      await this.updateCrownPhoto(divNum, customPhotos[divKey]);
     }
   }
 };

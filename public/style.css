@@ -1408,3 +1408,9 @@ input[type="date"]:focus {
   margin-top: 20px;
   text-align: right;
 }
+
+/* Admin Champion Photo Box */
+.admin-champion-photo-box {
+  grid-column: 1 / -1;
+  margin-top: 20px;
+}

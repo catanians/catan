@@ -129,6 +129,34 @@
         </form>
       </div>
     </section>
+
+    <!-- ADMIN: DIVISION CHAMPION PHOTO SELECTION SECTION -->
+    <section class="catan-card board-box admin-champion-photo-box" id="adminChampionPhotoSection" style="display: none;">
+      <h2 class="section-title">Set Division Champion Picture</h2>
+      <form id="adminChampionPhotoForm" class="gallery-form">
+        <div class="form-row inputs-row">
+          <div class="form-group date-field">
+            <label for="adminDivSelect">Division:</label>
+            <select id="adminDivSelect" class="gallery-match-select" required>
+              <option value="4" selected>4-Player Division</option>
+              <option value="5">5-Player Division</option>
+              <option value="6">6-Player Division</option>
+            </select>
+          </div>
+          <div class="form-group desc-field">
+            <label for="adminPhotoSelect">Choose Picture from Gallery:</label>
+            <select id="adminPhotoSelect" class="gallery-match-select">
+              <option value="">-- Use Auto / Default Photo --</option>
+            </select>
+          </div>
+        </div>
+        <div id="adminPhotoPreview" class="admin-photo-preview" style="margin-top: 10px; display: none;">
+          <img id="adminPhotoPreviewImg" src="" alt="Selected Champion Photo Preview" style="max-height: 120px; border-radius: 6px; border: 2px solid #5a3d28; display: block; margin: 0 auto;">
+        </div>
+        <div id="adminPhotoStatus" class="auth-error" style="display: none; margin-top: 10px; text-align: center;"></div>
+        <button type="submit" class="retro-btn btn-primary" style="margin-top: 15px;">Save Champion Picture</button>
+      </form>
+    </section>
   </main>
 
   <!-- ============================================ -->

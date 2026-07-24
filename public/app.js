@@ -2,6 +2,7 @@ let activeTab = 'global';
 let playersList = [];
 let currentUser = null;
 let matchesList = [];
+let latestCrowns = [];
 
 // Axial coordinates list for standard spiral hex board layout
 const hexCoords = [
@@ -41,6 +42,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     playerForm.addEventListener('submit', handlePlayerSubmit);
   }
   document.getElementById('matchForm').addEventListener('submit', handleMatchSubmit);
+
+  const adminDivSelect = document.getElementById('adminDivSelect');
+  if (adminDivSelect) {
+    adminDivSelect.addEventListener('change', populateAdminGallerySelect);
+  }
+  const adminPhotoSelect = document.getElementById('adminPhotoSelect');
+  if (adminPhotoSelect) {
+    adminPhotoSelect.addEventListener('change', updateAdminPhotoPreview);
+  }
+  const adminPhotoForm = document.getElementById('adminChampionPhotoForm');
+  if (adminPhotoForm) {
+    adminPhotoForm.addEventListener('submit', handleAdminChampionPhotoSubmit);
+  }
 
   // Tab buttons
   document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -277,6 +291,7 @@ async function renderCrownsAndLineage() {
     }
 
     const crowns = data.crowns;
+    latestCrowns = crowns;
     const reigns = data.reigns;
 
     // Render Crown Badges
@@ -289,7 +304,7 @@ async function renderCrownsAndLineage() {
       const crownImg = div === 4 ? '4-player-victor.png' : `${div}-player-victory.png`;
 
       if (crown) {
-        const photoUrl = getPlayerPhotoUrl(crown.currentHolderName);
+        const photoUrl = crown.customPhotoUrl || getPlayerPhotoUrl(crown.currentHolderName);
         const photoHtml = photoUrl ? `<div class="crown-photo-container"><img src="${photoUrl}" class="crown-photo" alt="Champion"></div>` : '';
 
         badge.innerHTML = `
@@ -902,6 +917,7 @@ async function fetchGalleryImages() {
   try {
     const res = await fetch('/api/gallery');
     galleryImages = await res.json();
+    populateAdminGallerySelect();
   } catch (err) {
     console.error('Error fetching gallery images:', err);
   }
@@ -1297,6 +1313,7 @@ function renderAuthBar() {
 function updateMatchFormVisibility() {
   const matchForm = document.getElementById('matchForm');
   const adminNotice = document.getElementById('adminOnlyNotice');
+  const adminPhotoSection = document.getElementById('adminChampionPhotoSection');
   const isAdmin = currentUser && currentUser.user && currentUser.user.isAdmin;
 
   if (matchForm) {
@@ -1304,6 +1321,109 @@ function updateMatchFormVisibility() {
   }
   if (adminNotice) {
     adminNotice.style.display = isAdmin ? 'none' : 'block';
+  }
+  if (adminPhotoSection) {
+    adminPhotoSection.style.display = isAdmin ? 'block' : 'none';
+  }
+  if (isAdmin) {
+    populateAdminGallerySelect();
+  }
+}
+
+function populateAdminGallerySelect() {
+  const photoSelect = document.getElementById('adminPhotoSelect');
+  const divSelect = document.getElementById('adminDivSelect');
+  if (!photoSelect || !divSelect) return;
+
+  const savedVal = photoSelect.value;
+  photoSelect.innerHTML = '<option value="">-- Use Auto / Default Photo --</option>';
+
+  galleryImages.forEach(img => {
+    const opt = document.createElement('option');
+    opt.value = img.imageUrl;
+    const descStr = img.description ? ` (${escapeHtml(img.description)})` : '';
+    opt.textContent = `${img.date}${descStr}`;
+    photoSelect.appendChild(opt);
+  });
+
+  const selectedDiv = parseInt(divSelect.value, 10);
+  const crown = latestCrowns.find(c => c.division === selectedDiv);
+  if (crown && crown.customPhotoUrl) {
+    photoSelect.value = crown.customPhotoUrl;
+  } else {
+    photoSelect.value = savedVal || '';
+  }
+
+  updateAdminPhotoPreview();
+}
+
+function updateAdminPhotoPreview() {
+  const photoSelect = document.getElementById('adminPhotoSelect');
+  const previewDiv = document.getElementById('adminPhotoPreview');
+  const previewImg = document.getElementById('adminPhotoPreviewImg');
+  if (!photoSelect || !previewDiv || !previewImg) return;
+
+  if (photoSelect.value) {
+    previewImg.src = photoSelect.value;
+    previewDiv.style.display = 'block';
+  } else {
+    previewImg.src = '';
+    previewDiv.style.display = 'none';
+  }
+}
+
+async function handleAdminChampionPhotoSubmit(e) {
+  e.preventDefault();
+  const divSelect = document.getElementById('adminDivSelect');
+  const photoSelect = document.getElementById('adminPhotoSelect');
+  const statusDiv = document.getElementById('adminPhotoStatus');
+  if (!divSelect || !photoSelect) return;
+
+  const division = divSelect.value;
+  const customPhotoUrl = photoSelect.value;
+  const token = localStorage.getItem('catan_token');
+
+  if (!token) {
+    if (statusDiv) {
+      statusDiv.style.display = 'block';
+      statusDiv.style.color = '#c62828';
+      statusDiv.innerText = 'Admin authentication required';
+    }
+    return;
+  }
+
+  try {
+    const res = await fetch(`/api/crowns/${division}/photo`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ customPhotoUrl })
+    });
+
+    if (res.ok) {
+      if (statusDiv) {
+        statusDiv.style.display = 'block';
+        statusDiv.style.color = '#2e7d32';
+        statusDiv.innerText = 'Division champion picture updated successfully!';
+        setTimeout(() => { statusDiv.style.display = 'none'; }, 3500);
+      }
+      await updateDashboard();
+    } else {
+      const errData = await res.json();
+      if (statusDiv) {
+        statusDiv.style.display = 'block';
+        statusDiv.style.color = '#c62828';
+        statusDiv.innerText = errData.error || 'Failed to update photo';
+      }
+    }
+  } catch (err) {
+    if (statusDiv) {
+      statusDiv.style.display = 'block';
+      statusDiv.style.color = '#c62828';
+      statusDiv.innerText = 'Network error while updating photo';
+    }
   }
 }
 
