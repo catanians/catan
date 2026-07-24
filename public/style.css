@@ -877,7 +877,7 @@ input[type="date"]:focus {
   display: flex;
   justify-content: center;
   gap: 8px;
-  margin: 40px 0 25px 0;
+  margin: 70px 0 25px 0;
 }
 
 .gallery-dot {
