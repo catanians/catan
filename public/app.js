@@ -582,7 +582,7 @@ function renderHexBoard(players) {
           const numClass = isRed ? 'token-number is-red' : 'token-number';
           const dotClass = isRed ? 'token-dot is-red' : 'token-dot';
 
-          const dotCount = Math.max(1, 5 - h.player.tieRank);
+          const dotCount = wins === 0 ? 0 : Math.max(1, 5 - h.player.tieRank);
           let dotsHtml = '';
           for (let i = 0; i < dotCount; i++) {
             dotsHtml += `<div class="${dotClass}"></div>`;
