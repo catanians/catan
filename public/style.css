@@ -314,7 +314,7 @@ body {
 .victory-bottom-text .holder-name,
 .crown-badge .holder-name {
   font-family: var(--font-header);
-  font-size: clamp(2rem, 3.2vw, 3.2rem);
+  font-size: clamp(1.5rem, 2.4vw, 2.4rem);
   font-weight: 900;
   color: #111;
   text-transform: uppercase;
@@ -1215,7 +1215,6 @@ input[type="date"]:focus {
 .lineage-node .piece-img {
   width: 60px;
   height: auto;
-  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.7));
 }
 
 /* City piece for full champion */
@@ -1265,7 +1264,6 @@ input[type="date"]:focus {
   display: block;
   height: 16px;
   width: auto;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));
 }
 
 /* Hide the SVG arrows — we use road PNGs now */
