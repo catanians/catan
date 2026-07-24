@@ -30,262 +30,262 @@
     <!-- TAB 1: HOME PAGE -->
     <!-- ============================================ -->
     <main class="dashboard-grid page-content active" id="page-home">
-    <!-- DIVISION CROWNS SECTION -->
-    <section class="catan-card board-box">
-      <h2 class="section-title">Current Division Champions</h2>
-      <div class="crowns-row" id="crownsContainer">
-        <!-- Populated by JS -->
-      </div>
-    </section>
-
-    <!-- DYNAMIC HEX BOARD SECTION -->
-    <section class="catan-card board-box">
-      <h2 class="section-title">Catan League Board</h2>
-      <div class="board-wrapper">
-        <div id="hexBoardContainer" class="hex-board-container">
-          <!-- Dynamically populated hexes -->
+      <!-- DIVISION CROWNS SECTION -->
+      <section class="catan-card board-box">
+        <h2 class="section-title">Current Division Champions</h2>
+        <div class="crowns-row" id="crownsContainer">
+          <!-- Populated by JS -->
         </div>
-      </div>
-    </section>
+      </section>
 
-    <!-- THE LINEAGE VISUALIZER -->
-    <section class="catan-card lineage-box">
-      <h2 class="section-title">The Crown Lineage</h2>
-      <div class="division-tabs" id="lineageTabs">
-        <button class="tab-btn active" data-div="4">4-Player Victory</button>
-        <button class="tab-btn" data-div="5">5-Player Victory</button>
-        <button class="tab-btn" data-div="6">6-Player Victory</button>
-      </div>
-
-      <div class="lineage-scroll-wrapper">
-        <div class="lineage-container" id="lineageContainer">
-          <!-- SVG Canvas for Arrows -->
-          <svg id="lineageSvg" class="lineage-svg">
-            <defs>
-              <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-                <polygon points="0 0, 10 3.5, 0 7" fill="rgba(255, 255, 255, 0.7)" />
-              </marker>
-            </defs>
-          </svg>
-          <!-- Nodes will be injected here via JS -->
-        </div>
-      </div>
-    </section>
-
-    <!-- MEMORIES GALLERY SECTION -->
-    <section class="catan-card board-box gallery-box">
-      <h2 class="section-title">Photos</h2>
-      
-      <!-- Slide Container -->
-      <div class="gallery-slider-wrapper">
-        <button id="galleryPrevBtn" class="gallery-nav-btn" aria-label="Previous Slide">&larr;</button>
-        
-        <div id="gallerySlider" class="gallery-slider">
-          <div class="gallery-slide-placeholder">
-            <p>No photos logged yet. Add the first picture below!</p>
+      <!-- DYNAMIC HEX BOARD SECTION -->
+      <section class="catan-card board-box">
+        <h2 class="section-title">Catan League Board</h2>
+        <div class="board-wrapper">
+          <div id="hexBoardContainer" class="hex-board-container">
+            <!-- Dynamically populated hexes -->
           </div>
         </div>
-        
-        <button id="galleryNextBtn" class="gallery-nav-btn" aria-label="Next Slide">&rarr;</button>
-      </div>
-      
-      <!-- Dot Indicators -->
-      <div id="galleryDots" class="gallery-dots"></div>
+      </section>
 
-      <!-- Add Image Form -->
-      <div class="add-gallery-wrapper">
-        <form id="galleryForm" class="gallery-form">
-          <div class="form-row">
-            <div class="form-group file-field">
-              <label>Select Picture (File):</label>
-              <div class="file-input-wrapper">
-                <input type="file" id="galleryFileInput" accept="image/*" required>
-                <span class="file-custom-btn">Choose Image</span>
-                <span id="fileNameLabel" class="file-name-label">No file chosen</span>
+      <!-- THE LINEAGE VISUALIZER -->
+      <section class="catan-card lineage-box">
+        <h2 class="section-title">The Crown Lineage</h2>
+        <div class="division-tabs" id="lineageTabs">
+          <button class="tab-btn active" data-div="4">4-Player Victory</button>
+          <button class="tab-btn" data-div="5">5-Player Victory</button>
+          <button class="tab-btn" data-div="6">6-Player Victory</button>
+        </div>
+
+        <div class="lineage-scroll-wrapper">
+          <div class="lineage-container" id="lineageContainer">
+            <!-- SVG Canvas for Arrows -->
+            <svg id="lineageSvg" class="lineage-svg">
+              <defs>
+                <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                  <polygon points="0 0, 10 3.5, 0 7" fill="rgba(255, 255, 255, 0.7)" />
+                </marker>
+              </defs>
+            </svg>
+            <!-- Nodes will be injected here via JS -->
+          </div>
+        </div>
+      </section>
+
+      <!-- MEMORIES GALLERY SECTION -->
+      <section class="catan-card board-box gallery-box">
+        <h2 class="section-title">Photos</h2>
+        
+        <!-- Slide Container -->
+        <div class="gallery-slider-wrapper">
+          <button id="galleryPrevBtn" class="gallery-nav-btn" aria-label="Previous Slide">&larr;</button>
+          
+          <div id="gallerySlider" class="gallery-slider">
+            <div class="gallery-slide-placeholder">
+              <p>No photos logged yet. Add the first picture below!</p>
+            </div>
+          </div>
+          
+          <button id="galleryNextBtn" class="gallery-nav-btn" aria-label="Next Slide">&rarr;</button>
+        </div>
+        
+        <!-- Dot Indicators -->
+        <div id="galleryDots" class="gallery-dots"></div>
+
+        <!-- Add Image Form -->
+        <div class="add-gallery-wrapper">
+          <form id="galleryForm" class="gallery-form">
+            <div class="form-row">
+              <div class="form-group file-field">
+                <label>Select Picture (File):</label>
+                <div class="file-input-wrapper">
+                  <input type="file" id="galleryFileInput" accept="image/*" required>
+                  <span class="file-custom-btn">Choose Image</span>
+                  <span id="fileNameLabel" class="file-name-label">No file chosen</span>
+                </div>
               </div>
             </div>
+
+            <div class="form-row inputs-row">
+              <div class="form-group date-field">
+                <label for="galleryDateInput">Picture Date:</label>
+                <input type="date" id="galleryDateInput" required>
+              </div>
+              
+              <div class="form-group desc-field">
+                <label for="galleryDescInput">Caption / Description:</label>
+                <input type="text" id="galleryDescInput" placeholder="A brief description of this memory...">
+              </div>
+
+              <div class="form-group match-field">
+                <label for="galleryMatchSelect">Link to Game (Optional):</label>
+                <select id="galleryMatchSelect" class="gallery-match-select">
+                  <option value="">-- None (General Photo) --</option>
+                </select>
+              </div>
+            </div>
+
+            <button type="submit" class="retro-btn btn-primary">Add to Photos</button>
+          </form>
+        </div>
+      </section>
+    </main>
+
+    <!-- ============================================ -->
+    <!-- TAB 2: MATCH CENTER PAGE -->
+    <!-- ============================================ -->
+    <main class="dashboard-grid page-content" id="page-match-center">
+      <!-- LOG A MATCH SECTION -->
+      <section class="catan-card log-box">
+        <h2 class="section-title">Log a Match</h2>
+        <div id="adminOnlyNotice" style="display: none; padding: 15px; text-align: center; color: var(--color-wood); font-weight: bold; background: rgba(0, 0, 0, 0.05); border-radius: 6px; margin-bottom: 10px;">
+          Only authenticated administrators can log matches. Please log in as an admin to access match entry.
+        </div>
+        <form id="matchForm">
+          <div class="form-group mode-toggle-group">
+            <label>Entry Mode:</label>
+            <div class="mode-toggle-options">
+              <input type="radio" id="modeDetailed" name="entryMode" value="detailed" checked>
+              <label for="modeDetailed">Detailed Stats</label>
+              <input type="radio" id="modeSimple" name="entryMode" value="simple">
+              <label for="modeSimple">Simple (Winner Only)</label>
+            </div>
           </div>
-
-          <div class="form-row inputs-row">
-            <div class="form-group date-field">
-              <label for="galleryDateInput">Picture Date:</label>
-              <input type="date" id="galleryDateInput" required>
-            </div>
-            
-            <div class="form-group desc-field">
-              <label for="galleryDescInput">Caption / Description:</label>
-              <input type="text" id="galleryDescInput" placeholder="A brief description of this memory...">
-            </div>
-
-            <div class="form-group match-field">
-              <label for="galleryMatchSelect">Link to Game (Optional):</label>
-              <select id="galleryMatchSelect" class="gallery-match-select">
-                <option value="">-- None (General Photo) --</option>
-              </select>
-            </div>
-          </div>
-
-          <button type="submit" class="retro-btn btn-primary">Add to Photos</button>
-        </form>
-      </div>
-    </section>
-
-    <!-- ADMIN: DIVISION CHAMPION PHOTO SELECTION SECTION -->
-    <section class="catan-card board-box admin-champion-photo-box" id="adminChampionPhotoSection" style="display: none;">
-      <h2 class="section-title">Set Division Champion Picture</h2>
-      <form id="adminChampionPhotoForm" class="gallery-form">
-        <div class="form-row inputs-row">
-          <div class="form-group date-field">
-            <label for="adminDivSelect">Division:</label>
-            <select id="adminDivSelect" class="gallery-match-select" required>
+          <div class="form-group">
+            <label for="divisionSelect">Game Division:</label>
+            <select id="divisionSelect" required>
               <option value="4" selected>4-Player Division</option>
               <option value="5">5-Player Division</option>
               <option value="6">6-Player Division</option>
             </select>
           </div>
-          <div class="form-group desc-field">
-            <label for="adminPhotoSelect">Choose Picture from Gallery:</label>
-            <select id="adminPhotoSelect" class="gallery-match-select">
-              <option value="">-- Use Auto / Default Photo --</option>
-            </select>
+
+          <div class="form-group">
+            <label>Placements (1st is Winner):</label>
+            <div id="placementInputsContainer">
+              <!-- Dynamically populated placement forms -->
+            </div>
           </div>
-        </div>
-        <div id="adminPhotoPreview" class="admin-photo-preview" style="margin-top: 10px; display: none;">
-          <img id="adminPhotoPreviewImg" src="" alt="Selected Champion Photo Preview" style="max-height: 120px; border-radius: 6px; border: 2px solid #5a3d28; display: block; margin: 0 auto;">
-        </div>
-        <div id="adminPhotoStatus" class="auth-error" style="display: none; margin-top: 10px; text-align: center;"></div>
-        <button type="submit" class="retro-btn btn-primary" style="margin-top: 15px;">Save Champion Picture</button>
-      </form>
-    </section>
-  </main>
 
-  <!-- ============================================ -->
-  <!-- TAB 2: MATCH CENTER PAGE -->
-  <!-- ============================================ -->
-  <main class="dashboard-grid page-content" id="page-match-center">
-    <!-- LOG A MATCH SECTION -->
-    <section class="catan-card log-box">
-      <h2 class="section-title">Log a Match</h2>
-      <div id="adminOnlyNotice" style="display: none; padding: 15px; text-align: center; color: var(--color-wood); font-weight: bold; background: rgba(0, 0, 0, 0.05); border-radius: 6px; margin-bottom: 10px;">
-        Only authenticated administrators can log matches. Please log in as an admin to access match entry.
-      </div>
-      <form id="matchForm">
-        <div class="form-group mode-toggle-group">
-          <label>Entry Mode:</label>
-          <div class="mode-toggle-options">
-            <input type="radio" id="modeDetailed" name="entryMode" value="detailed" checked>
-            <label for="modeDetailed">Detailed Stats</label>
-            <input type="radio" id="modeSimple" name="entryMode" value="simple">
-            <label for="modeSimple">Simple (Winner Only)</label>
+          <div class="form-group">
+            <label for="matchDate">Date & Time Played:</label>
+            <input type="datetime-local" id="matchDate" required>
           </div>
-        </div>
-        <div class="form-group">
-          <label for="divisionSelect">Game Division:</label>
-          <select id="divisionSelect" required>
-            <option value="4" selected>4-Player Division</option>
-            <option value="5">5-Player Division</option>
-            <option value="6">6-Player Division</option>
-          </select>
+
+          <button type="submit" class="retro-btn btn-primary">Log Match</button>
+        </form>
+      </section>
+
+      <!-- LEADERBOARDS & STATS -->
+      <section class="catan-card stats-box">
+        <h2 class="section-title">Leaderboard & Player Stats</h2>
+
+        <div class="division-tabs">
+          <button class="tab-btn active" data-div="global">Global</button>
+          <button class="tab-btn" data-div="4">4-Player</button>
+          <button class="tab-btn" data-div="5">5-Player</button>
+          <button class="tab-btn" data-div="6">6-Player</button>
         </div>
 
-        <div class="form-group">
-          <label>Placements (1st is Winner):</label>
-          <div id="placementInputsContainer">
-            <!-- Dynamically populated placement forms -->
+        <div class="table-container">
+          <table class="retro-table">
+            <thead>
+              <tr>
+                <th>Player</th>
+                <th>Wins</th>
+                <th>Losses</th>
+                <th>Win Rate</th>
+                <th>Streak (Max)</th>
+                <th>Avg VPs</th>
+                <th>Avg Misc</th>
+                <th>Avg Settlements</th>
+                <th>Avg Cities</th>
+                <th>Avg Metro</th>
+                <th>Road %</th>
+                <th>Placements</th>
+              </tr>
+            </thead>
+            <tbody id="leaderboardBody">
+              <!-- Dynamic Leaderboard content -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- MATCH HISTORY SECTION -->
+      <section class="catan-card match-history-box">
+        <h2 class="section-title">Match History</h2>
+        <div class="table-container match-history-scroll">
+          <table class="retro-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Division</th>
+                <th>Winner</th>
+                <th>Final Placements &amp; Stats (VP, Settlements, Cities, Metro, Road)</th>
+                <th>Photos</th>
+              </tr>
+            </thead>
+            <tbody id="matchHistoryBody">
+              <!-- Dynamic match history logs -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- CROWN LINEAGE TIMELINE -->
+      <section class="catan-card lineage-box">
+        <h2 class="section-title">Crown Lineage History</h2>
+        <div id="lineageTimeline" class="timeline">
+          <!-- Dynamic Lineage records -->
+        </div>
+      </section>
+
+      <!-- ADMIN: DIVISION CHAMPION PHOTO SELECTION SECTION -->
+      <section class="catan-card board-box admin-champion-photo-box" id="adminChampionPhotoSection" style="display: none;">
+        <h2 class="section-title collapsible-header" id="adminChampionPhotoHeader" style="cursor: pointer; user-select: none;">
+          Set Division Champion Picture <span class="toggle-icon">►</span>
+        </h2>
+        <form id="adminChampionPhotoForm" class="gallery-form" style="display: none;">
+          <div class="form-row inputs-row">
+            <div class="form-group date-field">
+              <label for="adminDivSelect">Division:</label>
+              <select id="adminDivSelect" class="gallery-match-select" required>
+                <option value="4" selected>4-Player Division</option>
+                <option value="5">5-Player Division</option>
+                <option value="6">6-Player Division</option>
+              </select>
+            </div>
+            <div class="form-group desc-field">
+              <label for="adminPhotoSelect">Choose Picture from Gallery:</label>
+              <select id="adminPhotoSelect" class="gallery-match-select">
+                <option value="">-- Use Auto / Default Photo --</option>
+              </select>
+            </div>
           </div>
-        </div>
+          <div id="adminPhotoPreview" class="admin-photo-preview" style="margin-top: 10px; display: none;">
+            <img id="adminPhotoPreviewImg" src="" alt="Selected Champion Photo Preview" style="max-height: 120px; border-radius: 6px; border: 2px solid #5a3d28; display: block; margin: 0 auto;">
+          </div>
+          <div id="adminPhotoStatus" class="auth-error" style="display: none; margin-top: 10px; text-align: center;"></div>
+          <button type="submit" class="retro-btn btn-primary" style="margin-top: 15px;">Save Champion Picture</button>
+        </form>
+      </section>
+    </main>
 
-        <div class="form-group">
-          <label for="matchDate">Date & Time Played:</label>
-          <input type="datetime-local" id="matchDate" required>
-        </div>
-
-        <button type="submit" class="retro-btn btn-primary">Log Match</button>
-      </form>
-    </section>
-
-    <!-- LEADERBOARDS & STATS -->
-    <section class="catan-card stats-box">
-      <h2 class="section-title">Leaderboard & Player Stats</h2>
-
-      <div class="division-tabs">
-        <button class="tab-btn active" data-div="global">Global</button>
-        <button class="tab-btn" data-div="4">4-Player</button>
-        <button class="tab-btn" data-div="5">5-Player</button>
-        <button class="tab-btn" data-div="6">6-Player</button>
+    <div class="auth-bar" id="authBar">
+      <div class="auth-left">
+        <span class="auth-welcome" id="authWelcome">Welcome! Log in to customize your tile preference.</span>
       </div>
-
-      <div class="table-container">
-        <table class="retro-table">
-          <thead>
-            <tr>
-              <th>Player</th>
-              <th>Wins</th>
-              <th>Losses</th>
-              <th>Win Rate</th>
-              <th>Streak (Max)</th>
-              <th>Avg VPs</th>
-              <th>Avg Misc</th>
-              <th>Avg Settlements</th>
-              <th>Avg Cities</th>
-              <th>Avg Metro</th>
-              <th>Road %</th>
-              <th>Placements</th>
-            </tr>
-          </thead>
-          <tbody id="leaderboardBody">
-            <!-- Dynamic Leaderboard content -->
-          </tbody>
-        </table>
+      <div class="auth-right" id="authActions">
+        <button class="auth-btn" id="showLoginBtn">Login</button>
+        <button class="auth-btn" id="showRegisterBtn">Register</button>
       </div>
-    </section>
-
-    <!-- MATCH HISTORY SECTION -->
-    <section class="catan-card match-history-box">
-      <h2 class="section-title">Match History</h2>
-      <div class="table-container match-history-scroll">
-        <table class="retro-table">
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Division</th>
-              <th>Winner</th>
-              <th>Final Placements &amp; Stats (VP, Settlements, Cities, Metro, Road)</th>
-              <th>Photos</th>
-            </tr>
-          </thead>
-          <tbody id="matchHistoryBody">
-            <!-- Dynamic match history logs -->
-          </tbody>
-        </table>
-      </div>
-    </section>
-
-    <!-- CROWN LINEAGE TIMELINE -->
-    <section class="catan-card lineage-box">
-      <h2 class="section-title">Crown Lineage History</h2>
-      <div id="lineageTimeline" class="timeline">
-        <!-- Dynamic Lineage records -->
-      </div>
-    </section>
-  </main>
-
-  <div class="auth-bar" id="authBar">
-    <div class="auth-left">
-      <span class="auth-welcome" id="authWelcome">Welcome! Log in to customize your tile preference.</span>
     </div>
-    <div class="auth-right" id="authActions">
-      <button class="auth-btn" id="showLoginBtn">Login</button>
-      <button class="auth-btn" id="showRegisterBtn">Register</button>
-    </div>
-  </div>
 
-  <footer class="tactile-footer">
+    <footer class="tactile-footer">
 
-  </footer>
+    </footer>
   </div> <!-- END MAIN CONTAINER BOX -->
-
-
 
   <!-- LOGIN MODAL -->
   <div id="loginModal" class="modal-overlay">

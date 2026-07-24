@@ -56,6 +56,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     adminPhotoForm.addEventListener('submit', handleAdminChampionPhotoSubmit);
   }
 
+  const adminPhotoHeader = document.getElementById('adminChampionPhotoHeader');
+  if (adminPhotoHeader) {
+    adminPhotoHeader.addEventListener('click', () => {
+      const form = document.getElementById('adminChampionPhotoForm');
+      const icon = adminPhotoHeader.querySelector('.toggle-icon');
+      if (form) {
+        const isHidden = form.style.display === 'none' || !form.style.display;
+        form.style.display = isHidden ? 'block' : 'none';
+        if (icon) {
+          icon.textContent = isHidden ? '▼' : '►';
+        }
+      }
+    });
+  }
+
   // Tab buttons
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {

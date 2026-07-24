@@ -297,30 +297,56 @@ body {
 
 .victory-bottom-text {
   position: absolute;
-  bottom: 12%; /* Moved up from 7% */
+  top: 60%;
+  bottom: 4%;
   left: 8%;
   right: 8%;
-  height: 25%;
   display: flex;
   flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 4px 4px 4px;
+  box-sizing: border-box;
+  text-align: center;
+  pointer-events: none;
+}
+
+.victory-bottom-text .holder-name,
+.crown-badge .holder-name {
+  font-family: var(--font-header);
+  font-size: clamp(2rem, 3.2vw, 3.2rem);
+  font-weight: 900;
+  color: #111;
+  text-transform: uppercase;
+  text-shadow: 1px 1px 0px rgba(255, 255, 255, 0.8), 0 2px 4px rgba(0, 0, 0, 0.3);
+  line-height: 1.05;
+  margin: auto 0;
+  padding-top: 4px;
+  max-width: 100%;
+  word-break: break-word;
+  display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.victory-bottom-text .holder-name {
-  font-family: var(--font-header);
-  font-size: 4.5rem; /* Increased size by ~20pt */
-  font-weight: 900;
-  color: #000;
-  text-transform: uppercase;
-  text-shadow: 1px 1px 0px rgba(255,255,255,0.7);
+.victory-bottom-text .defenses-info,
+.crown-badge .defenses-info {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #2b180a;
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.7);
+  margin-top: auto;
   margin-bottom: 2px;
+  font-style: normal;
+  letter-spacing: 0.5px;
 }
 
-.victory-bottom-text .defenses-info {
-  font-size: 1.1rem;
+.victory-bottom-text .vacant-text,
+.crown-badge .vacant-text {
+  color: #666;
+  font-size: 2rem;
+  font-style: italic;
   font-weight: 700;
-  color: #222;
 }
 
 .main-logo {
@@ -328,34 +354,6 @@ body {
   width: 100%;
   height: auto;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
-}
-
-.crown-badge .crown-icon {
-  font-size: 1.8rem;
-  margin-bottom: 2px;
-  display: block;
-  filter: drop-shadow(1px 1px 2px rgba(0, 0, 0, 0.2));
-}
-
-.crown-badge .holder-name {
-  font-size: 1.3rem;
-  font-weight: 900;
-  color: var(--color-ink);
-  text-shadow: 1px 1px 0px rgba(245, 242, 235, 0.6);
-  margin-bottom: 4px;
-}
-
-.crown-badge .defenses-info {
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: #444;
-  font-style: italic;
-}
-
-.crown-badge .vacant-text {
-  color: #888;
-  font-size: 1rem;
-  font-style: italic;
 }
 
 .form-group {
@@ -463,6 +461,8 @@ input[type="date"]:focus {
   padding: 8px 16px;
   cursor: pointer;
   font-family: var(--font-tactile);
+  font-weight: bold;
+  box-sizing: border-box;
   border-radius: 0;
 }
 
@@ -484,16 +484,23 @@ input[type="date"]:focus {
   background-color: #233e8a;
   border: 3px solid #233e8a;
   color: #f7c543;
+  width: 180px;
+  min-width: 180px;
+  font-weight: bold;
+  text-align: center;
+  box-sizing: border-box;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 
 #lineageTabs .tab-btn:hover {
   background-color: #1c316e;
+  border-color: #1c316e;
   color: #f7c543;
 }
 
 #lineageTabs .tab-btn.active {
-  background-color: #233e8a;
-  border-color: #233e8a;
+  background-color: #1f377a;
+  border-color: #f7c543;
   color: #ffffff;
   font-weight: bold;
 }
@@ -1413,4 +1420,25 @@ input[type="date"]:focus {
 .admin-champion-photo-box {
   grid-column: 1 / -1;
   margin-top: 20px;
+}
+
+.collapsible-header {
+  cursor: pointer;
+  user-select: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: color 0.2s ease, transform 0.1s ease;
+}
+
+.collapsible-header:hover {
+  color: var(--color-clay);
+}
+
+.collapsible-header .toggle-icon {
+  font-size: 0.85em;
+  color: var(--color-wood);
+  display: inline-block;
+  transition: transform 0.2s ease;
 }
