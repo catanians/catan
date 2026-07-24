@@ -1303,7 +1303,7 @@ function renderAuthBar() {
     document.getElementById('tilePrefSelect').addEventListener('change', handleTilePreferenceChange);
     document.getElementById('logoutBtn').addEventListener('click', handleLogout);
   } else {
-    authWelcome.innerText = 'Welcome! Log in to customize your tile preference.';
+    authWelcome.innerText = 'Welcome! Log in';
     authActions.innerHTML = `
       <button class="auth-btn" id="showLoginBtn">Login</button>
       <button class="auth-btn" id="showRegisterBtn">Register</button>
